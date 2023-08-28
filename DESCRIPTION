@@ -12,7 +12,8 @@ Depends:
 	R (>= 4.1.0)
 Imports:
   R6,
-  igraph
+  igraph,
+  connectapi
 RoxygenNote: 7.2.3
 Suggests: 
     testthat (>= 3.0.0),

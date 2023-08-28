@@ -4,12 +4,25 @@
 \alias{connect_task}
 \title{Creates a new ConnectTask object}
 \usage{
-connect_task(task_name, trigger_rule = trigger_options, simulated = FALSE)
+connect_task(
+  guid,
+  trigger_rule = trigger_options,
+  server = Sys.getenv(paste0(prefix, "_SERVER"), NA_character_),
+  api_key = Sys.getenv(paste0(prefix, "_API_KEY"), NA_character_),
+  prefix = "CONNECT",
+  simulated = FALSE
+)
 }
 \arguments{
-\item{task_name}{A scalar character for the name of the task deployed to Posit Connect}
+\item{guid}{A scalar character of the guid for the content deployed to Posit Connect}
 
 \item{trigger_rule}{A scalar character that defines state of dependency (upstream) tasks must be in to execute. See details.}
+
+\item{server}{The URL for accessing Posit Connect. Defaults to environment variable CONNECT_SERVER}
+
+\item{api_key}{The API Key to authenticate to Posit Connect with. Defaults to environment variable CONNECT_API_KEY}
+
+\item{prefix}{The prefix used to determine environment variables}
 
 \item{simulated}{A simulated connect task does not validate with a connect server nor executes any connect jobs}
 }

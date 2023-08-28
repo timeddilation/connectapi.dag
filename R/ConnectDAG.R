@@ -42,7 +42,7 @@ ConnectDAG <- R6::R6Class(
 
       tasks_df <- data.frame(
         task_name = character(),
-        task_id = character(),
+        task_guid = character(),
         task_status = character(),
         trigger_rule = character(),
         exec_order = integer()

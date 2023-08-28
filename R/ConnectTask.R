@@ -1,8 +1,9 @@
 ConnectTask <- R6::R6Class(
   "ConnectTask",
   public = list(
-    task_id = NA,
+    task_guid = NA_character_,
     task_name = NA_character_,
+    connect_server = NA,
     # possible statuses: Pending, Succeeded, Failed, Skipped
     task_status = NA_character_,
     trigger_rule = NA_character_,
@@ -11,19 +12,23 @@ ConnectTask <- R6::R6Class(
     task_graph = NULL,
 
 
-    initialize = function(task_name, trigger_rule = "all_success") {
+    initialize = function(guid, trigger_rule = "all_success", connect_server) {
       trigger_rule <- match.arg(trigger_rule, trigger_options)
 
-      self$task_name <- task_name
+      self$task_guid <- guid
       self$task_status <- "Pending"
       self$trigger_rule <- trigger_rule
+      self$connect_server <- connect_server
+
+      self$task_name <-
+        connectapi::content_item(self$connect_server, self$task_guid)$content$title
     },
 
 
     df_row = function() {
       data.frame(
         task_name = self$task_name,
-        task_id = self$task_id,
+        task_guid = self$task_guid,
         task_status = self$task_status,
         trigger_rule = self$trigger_rule
       )

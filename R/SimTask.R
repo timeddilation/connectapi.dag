@@ -7,10 +7,15 @@ SimTask <- R6::R6Class(
     fail_prob = 0.2,
 
 
-    initialize = function(task_name, trigger_rule = "all_success", fail_prob = 0.2) {
+    initialize = function(guid, trigger_rule = "all_success", fail_prob = 0.2) {
       stopifnot(is.numeric(fail_prob))
 
-      super$initialize(task_name, trigger_rule)
+      trigger_rule <- match.arg(trigger_rule, trigger_options)
+
+      self$task_guid <- guid
+      self$task_name <- guid
+      self$task_status <- "Pending"
+      self$trigger_rule <- trigger_rule
       self$fail_prob <- fail_prob
     },
 
