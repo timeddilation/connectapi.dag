@@ -1,0 +1,20 @@
+Package: connectapi.dag
+Type: Package
+Title: Task Orchestration for Posit Connect
+Version: 0.1.0
+Author: Tyler Neumann
+Maintainer: Tyler Neumann <neumanntylers@gmail.com>
+Description: Design task orchestration for jobs in Posit Connect.
+    Use semantics similar to AirFlow, but specifically for Connect and written in R.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends:
+	R (>= 4.1.0)
+Imports:
+  R6,
+  igraph
+RoxygenNote: 7.2.3
+Suggests: 
+    testthat (>= 3.0.0),
+    plotly
+Config/testthat/edition: 3
