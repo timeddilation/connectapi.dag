@@ -2,8 +2,11 @@ ConnectTask <- R6::R6Class(
   "ConnectTask",
   public = list(
     task_guid = NA_character_,
-    task_name = NA_character_,
     connect_server = NA,
+    task_content_item = NA, # connectapi::content_item()
+    task_variant = NA, # connectapi::get_variant_default()
+    task_rendering = NA, # connectapi::variant_render()
+    task_name = NA_character_,
     # possible statuses: Pending, Succeeded, Failed, Skipped
     task_status = NA_character_,
     trigger_rule = NA_character_,
@@ -20,8 +23,23 @@ ConnectTask <- R6::R6Class(
       self$trigger_rule <- trigger_rule
       self$connect_server <- connect_server
 
+      tryCatch(
+        self$task_content_item <-
+          connectapi::content_item(self$connect_server, self$task_guid),
+        error = function(e) stop(paste(
+          "Could not locate a content with guid", self$task_guid,
+          "on server", self$connect_server$server,
+          "\n", e
+        ))
+      )
+
       self$task_name <-
-        connectapi::content_item(self$connect_server, self$task_guid)$content$title
+        self$task_content_item$content$title
+
+      # TODO: See if there is a way to validate the content item here
+      # right now, I do not know if the content can be rendered until you attempt to call render
+      # It is possible to specify an API, Shiny App, etc as a task in the DAG
+      # This should fail validation. Only items that render should be allowed
     },
 
 
@@ -85,14 +103,44 @@ ConnectTask <- R6::R6Class(
       if (verbose) message(paste("Starting task", self$task_name))
 
       if (self$can_run()) {
-        ### BEGIN STUB
-        # TODO: call connect render
-        self$task_status <- "Succeeded"
-        if (verbose) message("Task Succeeded")
-        ### END STUB
+        self$task_variant <-
+          connectapi::get_variant_default(self$task_content_item) |>
+          suppressWarnings()
+
+        tryCatch(
+          self$task_rendering <- connectapi::variant_render(self$task_variant),
+          error = function(e) stop(paste(
+            self$task_guid,
+            "is not a content item that can render.",
+            "Make sure you do not specify an API, Application, or other content item without a render call.",
+            e
+          ))
+        )
+
+        self$poll_task(verbose)
       } else {
         self$task_status <- "Skipped"
         if (verbose) message("Task Skipped")
+      }
+
+      invisible(self)
+    },
+
+
+    poll_task = function(verbose = FALSE) {
+      res <- tryCatch(
+        connectapi::poll_task(self$task_rendering),
+        error = function(e) print(e)
+      )
+
+      task_successful <- !any(class(res) == "error")
+
+      if (task_successful) {
+        self$task_status <- "Succeeded"
+        if (verbose) message("Task Succeeded")
+      } else {
+        self$task_status <- "Failed"
+        if (verbose) message("Task Failed")
       }
 
       invisible(self)
