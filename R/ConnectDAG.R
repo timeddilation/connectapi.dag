@@ -88,6 +88,17 @@ ConnectDAG <- R6::R6Class(
     },
 
 
+    dag_reset = function() {
+      for (task in self$dag_tasks) {
+        task$task_status <- "Pending"
+      }
+
+      self$is_complete <- FALSE
+
+      invisible(self)
+    },
+
+
     evaluate_validity = function() {
       private$validate_dag()
       return(self$is_valid)
