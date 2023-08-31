@@ -10,9 +10,8 @@ ConnectDAG <- R6::R6Class(
     is_complete = FALSE,
 
 
-    initialize = function(name, ...) {
-      stopifnot(is.character(name))
-      self$name <- name
+    initialize = function(name = "new_dag", ...) {
+      self$name <- self$set_name(name)
 
       for (task in list(...)) {
         self$add_task(task)
@@ -22,7 +21,18 @@ ConnectDAG <- R6::R6Class(
 
     add_task = function(task) {
       stopifnot(is(task, "ConnectTask"))
-      self$dag_tasks <- append(self$dag_tasks, task)
+
+      if (!task$task_guid %in% private$dag_task_guids()) {
+        self$dag_tasks <- append(self$dag_tasks, task)
+      }
+
+      invisible(self)
+    },
+
+
+    set_name = function(name) {
+      stopifnot(is.character(name), length(name) == 1)
+      self$name <- name
 
       invisible(self)
     },
@@ -107,6 +117,12 @@ ConnectDAG <- R6::R6Class(
 
 
   private = list(
+    dag_task_guids = function() {
+      lapply(self$dag_tasks, {\(task) task$task_guid}) |>
+        unlist()
+    },
+
+
     update_dag_graph = function() {
       # logical vector of actual graphs, not NAs
       task_graphs <- lapply(self$dag_tasks, {\(task) task$task_graph})
