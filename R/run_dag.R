@@ -3,7 +3,7 @@
 #' Executes Posit Connect Tasks sequentially,
 #' ensuring dependency tasks run before dependents.
 #'
-#' @param object A ConnectDAG R6 environment created by \link[connectapi.dag]{connect_dag}
+#' @param env A ConnectDAG R6 environment created by \link[connectapi.dag]{connect_dag}
 #' @param verbose A boolean, when TRUE prints messages to console as tasks execute
 #'
 #' @examples
@@ -15,7 +15,7 @@
 #' run_dag(my_dag)
 #' @export
 
-run_dag <- function(object, verbose = FALSE) {
-  stopifnot(inherits(object, "ConnectDAG"), is.logical(verbose))
-  object$run_dag(verbose)
+run_dag <- function(env, verbose = FALSE) {
+  stopifnot(inherits(env, "ConnectDAG"), is.logical(verbose))
+  env$run_dag(verbose)
 }

@@ -4,10 +4,10 @@
 \alias{run_dag}
 \title{Run orchestrated ConnectTasks}
 \usage{
-run_dag(object, verbose = FALSE)
+run_dag(env, verbose = FALSE)
 }
 \arguments{
-\item{object}{A ConnectDAG R6 environment created by \link[connectapi.dag]{connect_dag}}
+\item{env}{A ConnectDAG R6 environment created by \link[connectapi.dag]{connect_dag}}
 
 \item{verbose}{A boolean, when TRUE prints messages to console as tasks execute}
 }

@@ -4,10 +4,10 @@
 \alias{dag_as_df}
 \title{Return DAG tasks as a data.frame}
 \usage{
-dag_as_df(object)
+dag_as_df(env)
 }
 \arguments{
-\item{object}{A ConnectDAG R6 environment created by \link[connectapi.dag]{connect_dag}}
+\item{env}{A ConnectDAG R6 environment created by \link[connectapi.dag]{connect_dag}}
 }
 \value{
 A data.frame

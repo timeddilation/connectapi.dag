@@ -4,7 +4,7 @@
 #' and is a [graph] DAG.
 #' A DAG that is not valid will generate a warning message with the reason.
 #'
-#' @param object A ConnectDAG R6 environment
+#' @param env A ConnectDAG R6 environment
 #'
 #' @return A boolean indicating if it is valid or not
 #'
@@ -17,7 +17,7 @@
 #' validate_connect_dag(my_dag)
 #' @export
 
-validate_connect_dag <- function(object) {
-  stopifnot(inherits(object, "ConnectDAG"))
-  object$evaluate_validity()
+validate_connect_dag <- function(env) {
+  stopifnot(inherits(env, "ConnectDAG"))
+  env$evaluate_validity()
 }

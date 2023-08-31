@@ -4,10 +4,10 @@
 \alias{validate_connect_dag}
 \title{Validates a ConnectDAG is complete and can be executed}
 \usage{
-validate_connect_dag(object)
+validate_connect_dag(env)
 }
 \arguments{
-\item{object}{A ConnectDAG R6 environment}
+\item{env}{A ConnectDAG R6 environment}
 }
 \value{
 A boolean indicating if it is valid or not

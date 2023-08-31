@@ -3,7 +3,7 @@
 #' Creates a data.frame of the tasks added to the DAG.
 #' Includes the execution order of the tasks if the DAG is valid.
 #'
-#' @param object A ConnectDAG R6 environment created by \link[connectapi.dag]{connect_dag}
+#' @param env A ConnectDAG R6 environment created by \link[connectapi.dag]{connect_dag}
 #'
 #' @return A data.frame
 #'
@@ -16,7 +16,7 @@
 #' dag_as_df(my_dag)
 #' @export
 
-dag_as_df <- function(object) {
-  stopifnot(inherits(object, "ConnectDAG"))
-  object$tasks_as_df()
+dag_as_df <- function(env) {
+  stopifnot(inherits(env, "ConnectDAG"))
+  env$tasks_as_df()
 }
