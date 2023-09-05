@@ -6,10 +6,21 @@ test_that("a simple DAG is valid", {
 
   dag0 <-
     connect_dag(task0, task1) |>
-    dag_validate() |>
-    suppressMessages()
+    dag_validate(verbose = FALSE)
 
   expect_true(dag0$is_valid)
+})
+
+test_that("verbose validation gives message", {
+  task0 <- connect_task("task0", simulated = TRUE)
+  task1 <- connect_task("task1", simulated = TRUE)
+
+  task0 |> set_downstream(task1)
+
+  dag0 <-
+    connect_dag(task0, task1) |>
+    dag_validate(verbose = TRUE) |>
+    expect_message(regexp = "DAG.*valid")
 })
 
 test_that("a complex DAG is valid", {
@@ -38,8 +49,7 @@ test_that("a complex DAG is valid", {
   task9 |>
     set_upstream(task3, task6)
 
-  dag_validate(dag0) |>
-    suppressMessages()
+  dag_validate(dag0, verbose = FALSE)
 
   expect_true(dag0$is_valid)
 })

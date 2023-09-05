@@ -133,10 +133,11 @@ ConnectDAG <- R6::R6Class(
     },
 
 
-    evaluate_validity = function() {
+    evaluate_validity = function(verbose = TRUE) {
+      stopifnot(is.logical(verbose))
       private$validate_dag()
 
-      if (self$is_valid) {
+      if (self$is_valid & verbose) {
         message("DAG is valid!")
       }
 

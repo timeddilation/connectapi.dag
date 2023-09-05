@@ -17,9 +17,9 @@
 #' dag_validate(my_dag)
 #' @export
 
-dag_validate <- function(env) {
+dag_validate <- function(env, verbose = TRUE) {
   stopifnot(inherits(env, "ConnectDAG"))
-  env$evaluate_validity()
+  env$evaluate_validity(verbose)
 
   return(env)
 }
