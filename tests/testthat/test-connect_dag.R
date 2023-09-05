@@ -13,6 +13,7 @@ test_that("dag initializes with only a name and no tasks", {
 
   expect_true(inherits(dag0, "ConnectDAG"))
   expect_equal(length(dag0$dag_tasks), 0)
+  expect_equal(dag0$name, "foo")
 
   dag0$evaluate_validity() |>
     suppressMessages()

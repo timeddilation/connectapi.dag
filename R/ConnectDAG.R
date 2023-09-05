@@ -11,7 +11,7 @@ ConnectDAG <- R6::R6Class(
 
 
     initialize = function(name = "new_dag", ...) {
-      self$name <- self$set_name(name)
+      self$set_name(name)
 
       dag_add_tasks(self, ...)
     },
