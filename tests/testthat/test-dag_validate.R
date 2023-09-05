@@ -4,9 +4,12 @@ test_that("a simple DAG is valid", {
 
   task0 |> set_downstream(task1)
 
-  connect_dag(task0, task1) |>
+  dag0 <-
+    connect_dag(task0, task1) |>
     dag_validate() |>
-    expect_true()
+    suppressMessages()
+
+  expect_true(dag0$is_valid)
 })
 
 test_that("a complex DAG is valid", {
@@ -35,7 +38,10 @@ test_that("a complex DAG is valid", {
   task9 |>
     set_upstream(task3, task6)
 
-  expect_true(dag_validate(dag0))
+  dag_validate(dag0) |>
+    suppressMessages()
+
+  expect_true(dag0$is_valid)
 })
 
 test_that("circular dependencies is an invalid DAG", {
@@ -47,22 +53,26 @@ test_that("circular dependencies is an invalid DAG", {
   task1 |> set_downstream(task2)
   task2 |> set_downstream(task0)
 
-  connect_dag(task0, task1, task2) |>
+  dag0 <-
+    connect_dag(task0, task1, task2) |>
     dag_validate() |>
     suppressMessages() |>
-    suppressWarnings() |>
-    expect_false()
+    suppressWarnings()
+
+  expect_false(dag0$is_valid)
 })
 
 test_that("disconnected tasks is an invalid DAG", {
   task0 <- connect_task("task0", simulated = TRUE)
   task1 <- connect_task("task1", simulated = TRUE)
 
-  connect_dag(task0, task1) |>
+  dag0 <-
+    connect_dag(task0, task1) |>
     dag_validate() |>
     suppressMessages() |>
-    suppressWarnings() |>
-    expect_false()
+    suppressWarnings()
+
+  expect_false(dag0$is_valid)
 })
 
 test_that("one or more islands is an invalid DAG", {
@@ -74,11 +84,13 @@ test_that("one or more islands is an invalid DAG", {
   task0 |> set_downstream(task1)
   task2 |> set_downstream(task3)
 
-  connect_dag(task0, task1, task2, task3) |>
+  dag0 <-
+    connect_dag(task0, task1, task2, task3) |>
     dag_validate() |>
     suppressMessages() |>
-    suppressWarnings() |>
-    expect_false()
+    suppressWarnings()
+
+  expect_false(dag0$is_valid)
 })
 
 test_that("all tasks with a link to another task are provided to the dag", {
@@ -87,9 +99,11 @@ test_that("all tasks with a link to another task are provided to the dag", {
 
   task0 |> set_downstream(task1)
 
-  connect_dag(task0) |>
+  dag0 <-
+    connect_dag(task0) |>
     dag_validate() |>
     suppressMessages() |>
-    suppressWarnings() |>
-    expect_false()
+    suppressWarnings()
+
+  expect_false(dag0$is_valid)
 })

@@ -135,7 +135,12 @@ ConnectDAG <- R6::R6Class(
 
     evaluate_validity = function() {
       private$validate_dag()
-      return(self$is_valid)
+
+      if (self$is_valid) {
+        message("DAG is valid!")
+      }
+
+      invisible(self)
     }
   ),
 

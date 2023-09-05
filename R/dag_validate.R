@@ -20,4 +20,6 @@
 dag_validate <- function(env) {
   stopifnot(inherits(env, "ConnectDAG"))
   env$evaluate_validity()
+
+  return(env)
 }

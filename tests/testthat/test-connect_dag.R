@@ -13,7 +13,10 @@ test_that("dag initializes with only a name and no tasks", {
 
   expect_true(inherits(dag0, "ConnectDAG"))
   expect_equal(length(dag0$dag_tasks), 0)
-  expect_false(suppressMessages(dag0$evaluate_validity()))
+
+  dag0$evaluate_validity() |>
+    suppressMessages()
+  expect_false(dag0$is_valid)
 })
 
 test_that("dag fails to initialize when provided tasks are not ConnecTask objects", {
