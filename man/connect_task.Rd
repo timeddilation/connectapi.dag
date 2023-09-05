@@ -56,6 +56,7 @@ The following trigger rules are available:
  \item{"one_done"} {At least one upstream task completed evaluation. This includes skipped tasks.}
  \item{"none_failed"} {No upstream tasks failed. All other upstream tasks completed evaluation.}
  \item{"none_skipped"} {No upstream tasks skipped. All other upstream tasks completed evaluation.}
+ \item{"always"} {Task will always run regardless of upstream task statuses.}
 }
 }
 \examples{

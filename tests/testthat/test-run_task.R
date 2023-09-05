@@ -365,3 +365,30 @@ test_that("none_skipped trigger skips when one upstream skipped", {
   expect_equal(task1$task_status, "Succeeded")
   expect_equal(task0$task_status, "Skipped")
 })
+################################################################################
+# always
+################################################################################
+test_that("always trigger runs successfully regardless of upstream task statuses", {
+  task0 <- sim_task("task0", trigger_rule = "always", fail_prob = 0)
+  task1 <- sim_task("task1", fail_prob = 0) # Succeeded
+  task2 <- sim_task("task2", fail_prob = 1) # Failed
+  task3 <- sim_task("task3", fail_prob = 0) # Skipped
+  task4 <- sim_task("task4", fail_prob = 1) # Failed
+
+  task4 |> set_downstream(task3)
+  task0 |> set_upstream(task1, task2, task3)
+
+  dag0 <- connect_dag(task0, task1, task2, task3, task4)
+
+  run_task(task4)
+  run_task(task3)
+  run_task(task2)
+  run_task(task1)
+  run_task(task0)
+
+  expect_equal(task4$task_status, "Failed")
+  expect_equal(task3$task_status, "Skipped")
+  expect_equal(task2$task_status, "Failed")
+  expect_equal(task1$task_status, "Succeeded")
+  expect_equal(task0$task_status, "Succeeded")
+})

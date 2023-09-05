@@ -168,7 +168,8 @@ ConnectTask <- R6::R6Class(
         one_done = any(self$upstream_task_statuses() %in% terminal_statuses),
 
         none_failed = all(self$upstream_task_statuses() %in% c("Succeeded", "Skipped")),
-        none_skipped = all(self$upstream_task_statuses() %in% c("Succeeded", "Failed"))
+        none_skipped = all(self$upstream_task_statuses() %in% c("Succeeded", "Failed")),
+        always = TRUE
       )
     }
   ),
