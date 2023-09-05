@@ -5,6 +5,7 @@
 #' A DAG that is not valid will generate a warning message with the reason.
 #'
 #' @param env A ConnectDAG R6 environment
+#' @param verbose A logical, when TRUE (the default) a message will print to the console if valid
 #'
 #' @return A boolean indicating if it is valid or not
 #'

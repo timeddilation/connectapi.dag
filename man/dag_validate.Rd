@@ -4,10 +4,12 @@
 \alias{dag_validate}
 \title{Validates a ConnectDAG is complete and can be executed}
 \usage{
-dag_validate(env)
+dag_validate(env, verbose = TRUE)
 }
 \arguments{
 \item{env}{A ConnectDAG R6 environment}
+
+\item{verbose}{A logical, when TRUE (the default) a message will print to the console if valid}
 }
 \value{
 A boolean indicating if it is valid or not
