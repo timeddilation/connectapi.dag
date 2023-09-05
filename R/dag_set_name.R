@@ -16,4 +16,6 @@
 dag_set_name <- function(env, name) {
   stopifnot(inherits(env, "ConnectDAG"))
   env$set_name(name)
+
+  return(env)
 }

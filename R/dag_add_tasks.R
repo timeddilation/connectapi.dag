@@ -23,4 +23,6 @@ dag_add_tasks <- function(env, ...) {
   for (task in list(...)) {
     env$add_task(task)
   }
+
+  return(env)
 }

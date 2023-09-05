@@ -108,7 +108,7 @@ With the dag object created, you can check the validity of the DAG.
 If any issues are found, a message will return in the console for why it is invalid.
 
 ```{r, eval=FALSE}
-validate_connect_dag(my_dag)
+dag_validate(my_dag)
 ```
 
 You may also plot the DAG.

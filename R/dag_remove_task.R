@@ -20,4 +20,6 @@
 dag_remove_task <- function(env, task) {
   stopifnot(inherits(env, "ConnectDAG"))
   env$remove_task(task)
+
+  return(env)
 }

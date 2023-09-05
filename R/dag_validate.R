@@ -14,10 +14,10 @@
 #' task1 |> set_downstream(task2)
 #'
 #' my_dag <- connect_dag(task1, task2)
-#' validate_connect_dag(my_dag)
+#' dag_validate(my_dag)
 #' @export
 
-validate_connect_dag <- function(env) {
+dag_validate <- function(env) {
   stopifnot(inherits(env, "ConnectDAG"))
   env$evaluate_validity()
 }

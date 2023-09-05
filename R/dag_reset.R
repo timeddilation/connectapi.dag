@@ -18,4 +18,6 @@
 dag_reset <- function(env) {
   stopifnot(inherits(env, "ConnectDAG"))
   env$dag_reset()
+
+  return(env)
 }
