@@ -2,8 +2,11 @@
 
 export(connect_dag)
 export(connect_task)
+export(dag_add_tasks)
 export(dag_as_df)
+export(dag_remove_task)
 export(dag_reset)
+export(dag_set_name)
 export(run_dag)
 export(run_task)
 export(set_downstream)

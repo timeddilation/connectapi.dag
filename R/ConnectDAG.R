@@ -13,17 +13,35 @@ ConnectDAG <- R6::R6Class(
     initialize = function(name = "new_dag", ...) {
       self$name <- self$set_name(name)
 
-      for (task in list(...)) {
-        self$add_task(task)
-      }
+      dag_add_tasks(self, ...)
     },
 
 
     add_task = function(task) {
-      stopifnot(is(task, "ConnectTask"))
+      stopifnot(inherits(task, "ConnectTask"))
 
-      if (!task$task_guid %in% private$dag_task_guids()) {
+      if (!task$task_guid %in% self$dag_task_guids()) {
         self$dag_tasks <- append(self$dag_tasks, task)
+      }
+
+      invisible(self)
+    },
+
+
+    remove_task = function(task) {
+      stopifnot(inherits(task, "ConnectTask"))
+
+      task_id <- task$task_guid
+
+      task_idx <-
+        self$dag_task_guids() |>
+        {\(task_ids) task_ids == task_id}() |>
+        which()
+
+      if (length(task_idx) == 1) {
+        self$dag_tasks <- self$dag_tasks[-task_idx]
+      } else {
+        warning(paste("Task", task_id, "is not part of DAG."))
       }
 
       invisible(self)
@@ -44,6 +62,12 @@ ConnectDAG <- R6::R6Class(
         plotly_dag_graph(self)
       else
         return(invisible(NULL))
+    },
+
+
+    dag_task_guids = function() {
+      lapply(self$dag_tasks, {\(task) task$task_guid}) |>
+        unlist()
     },
 
 
@@ -117,12 +141,6 @@ ConnectDAG <- R6::R6Class(
 
 
   private = list(
-    dag_task_guids = function() {
-      lapply(self$dag_tasks, {\(task) task$task_guid}) |>
-        unlist()
-    },
-
-
     update_dag_graph = function() {
       # logical vector of actual graphs, not NAs
       task_graphs <- lapply(self$dag_tasks, {\(task) task$task_graph})
@@ -171,7 +189,7 @@ ConnectDAG <- R6::R6Class(
       task_list_names <-
         lapply(self$dag_tasks, {\(task) task$task_name}) |>
         unlist()
-      task_node_names <- names(V(self$dag_graph))
+      task_node_names <- names(igraph::V(self$dag_graph))
 
       # check if all nodes in the graph have a task in the dag task list
       missing_tasks <- any(!task_node_names %in% task_list_names)
@@ -213,7 +231,7 @@ ConnectDAG <- R6::R6Class(
         warning("DAG is not valid. It cannot be executed. See warning messages.")
       }
 
-      return(invisible(NULL))
+      invisible(self)
     },
 
     # returns the order in which tasks should execute
