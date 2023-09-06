@@ -278,7 +278,7 @@ ConnectDAG <- R6::R6Class(
     # Runs a DAG task
     run_dag_task = function(task_name, verbose = FALSE) {
       dag_task <- which(lapply(self$dag_tasks, {\(task) task$task_name}) == task_name)
-      run_task(self$dag_tasks[[dag_task]], verbose)
+      task_run(self$dag_tasks[[dag_task]], verbose)
     }
   )
 )

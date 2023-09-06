@@ -8,10 +8,10 @@
 #'
 #' @examples
 #' task0 <- connect_task("task0", simulated = TRUE)
-#' run_task(task0)
+#' task_run(task0)
 #' @export
 
-run_task <- function(env, verbose = FALSE) {
+task_run <- function(env, verbose = FALSE) {
   stopifnot(inherits(env, "ConnectTask"), is.logical(verbose))
   env$execute_task(verbose)
 }

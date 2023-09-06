@@ -3,7 +3,7 @@
 ################################################################################
 test_that("task runs regardless of trigger rule with no upstream tasks", {
   task0 <- sim_task("task0", fail_prob = 0)
-  run_task(task0)
+  task_run(task0)
   expect_equal(task0$task_status, "Succeeded")
 })
 ################################################################################
@@ -16,9 +16,9 @@ test_that("all_success trigger runs successfully", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task1)
-  run_task(task2)
-  run_task(task0)
+  task_run(task1)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Succeeded")
   expect_equal(task2$task_status, "Succeeded")
@@ -32,9 +32,9 @@ test_that("all_success trigger skips when one upstream not successful", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task1)
-  run_task(task2)
-  run_task(task0)
+  task_run(task1)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Failed")
   expect_equal(task2$task_status, "Succeeded")
@@ -50,9 +50,9 @@ test_that("all_failed trigger runs successfully", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task1)
-  run_task(task2)
-  run_task(task0)
+  task_run(task1)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Failed")
   expect_equal(task2$task_status, "Failed")
@@ -66,9 +66,9 @@ test_that("all_failed trigger skips when on upstream task is not Failed", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task1)
-  run_task(task2)
-  run_task(task0)
+  task_run(task1)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Failed")
   expect_equal(task2$task_status, "Succeeded")
@@ -87,11 +87,11 @@ test_that("all_done trigger runs for all terminal upstream states", {
   task0 |> set_upstream(task1, task2, task3)
   task3 |> set_upstream(task4)
 
-  run_task(task4)
-  run_task(task3)
-  run_task(task1)
-  run_task(task2)
-  run_task(task0)
+  task_run(task4)
+  task_run(task3)
+  task_run(task1)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task4$task_status, "Failed")
   expect_equal(task3$task_status, "Skipped")
@@ -107,8 +107,8 @@ test_that("all_done trigger skips when upstream is not terminal", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task1)
-  run_task(task0)
+  task_run(task1)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Succeeded")
   expect_equal(task2$task_status, "Pending")
@@ -126,10 +126,10 @@ test_that("all_skipped trigger runs successfully", {
   task0 |> set_upstream(task1, task2)
   task3 |> set_downstream(task1, task2)
 
-  run_task(task3)
-  run_task(task2)
-  run_task(task1)
-  run_task(task0)
+  task_run(task3)
+  task_run(task2)
+  task_run(task1)
+  task_run(task0)
 
   expect_equal(task3$task_status, "Failed")
   expect_equal(task1$task_status, "Skipped")
@@ -146,10 +146,10 @@ test_that("all_skipped trigger skips if any upstream not skipped", {
   task0 |> set_upstream(task1, task2)
   task3 |> set_downstream(task1)
 
-  run_task(task3)
-  run_task(task2)
-  run_task(task1)
-  run_task(task0)
+  task_run(task3)
+  task_run(task2)
+  task_run(task1)
+  task_run(task0)
 
   expect_equal(task3$task_status, "Failed")
   expect_equal(task1$task_status, "Skipped")
@@ -166,9 +166,9 @@ test_that("one_success trigger runs successfully", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task1)
-  run_task(task2)
-  run_task(task0)
+  task_run(task1)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Failed")
   expect_equal(task2$task_status, "Succeeded")
@@ -182,9 +182,9 @@ test_that("one_success trigger skips if none upstream are successful", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task1)
-  run_task(task2)
-  run_task(task0)
+  task_run(task1)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Failed")
   expect_equal(task2$task_status, "Failed")
@@ -200,9 +200,9 @@ test_that("one_failed trigger runs successfully", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task1)
-  run_task(task2)
-  run_task(task0)
+  task_run(task1)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Failed")
   expect_equal(task2$task_status, "Succeeded")
@@ -216,9 +216,9 @@ test_that("one_failed trigger skips if none upstream are failed", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task1)
-  run_task(task2)
-  run_task(task0)
+  task_run(task1)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Succeeded")
   expect_equal(task2$task_status, "Succeeded")
@@ -234,8 +234,8 @@ test_that("one_done trigger runs successfully when upstream succeeded", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task2)
-  run_task(task0)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Pending")
   expect_equal(task2$task_status, "Succeeded")
@@ -249,8 +249,8 @@ test_that("one_done trigger runs successfully when upstream failed", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task2)
-  run_task(task0)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Pending")
   expect_equal(task2$task_status, "Failed")
@@ -266,9 +266,9 @@ test_that("one_done trigger runs successfully when upstream skipped", {
   task0 |> set_upstream(task1, task2)
   task2 |> set_upstream(task3)
 
-  run_task(task3)
-  run_task(task2)
-  run_task(task0)
+  task_run(task3)
+  task_run(task2)
+  task_run(task0)
 
   expect_equal(task3$task_status, "Failed")
   expect_equal(task1$task_status, "Pending")
@@ -283,7 +283,7 @@ test_that("one_done trigger skips if none upstream are done", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task0)
+  task_run(task0)
 
   expect_equal(task1$task_status, "Pending")
   expect_equal(task2$task_status, "Pending")
@@ -301,10 +301,10 @@ test_that("none_failed trigger runs successfully when upstream succeeded or skip
   task0 |> set_upstream(task1, task2)
   task2 |> set_upstream(task3)
 
-  run_task(task3)
-  run_task(task2)
-  run_task(task1)
-  run_task(task0)
+  task_run(task3)
+  task_run(task2)
+  task_run(task1)
+  task_run(task0)
 
   expect_equal(task3$task_status, "Failed")
   expect_equal(task2$task_status, "Skipped")
@@ -319,9 +319,9 @@ test_that("none_failed trigger skips when one upstream failed", {
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task2)
-  run_task(task1)
-  run_task(task0)
+  task_run(task2)
+  task_run(task1)
+  task_run(task0)
 
   expect_equal(task2$task_status, "Failed")
   expect_equal(task1$task_status, "Succeeded")
@@ -337,9 +337,9 @@ test_that("none_skipped trigger runs successfully when upstream succeeded or fai
 
   task0 |> set_upstream(task1, task2)
 
-  run_task(task2)
-  run_task(task1)
-  run_task(task0)
+  task_run(task2)
+  task_run(task1)
+  task_run(task0)
 
   expect_equal(task2$task_status, "Failed")
   expect_equal(task1$task_status, "Succeeded")
@@ -355,10 +355,10 @@ test_that("none_skipped trigger skips when one upstream skipped", {
   task0 |> set_upstream(task1, task2)
   task2 |> set_upstream(task3)
 
-  run_task(task3)
-  run_task(task2)
-  run_task(task1)
-  run_task(task0)
+  task_run(task3)
+  task_run(task2)
+  task_run(task1)
+  task_run(task0)
 
   expect_equal(task3$task_status, "Failed")
   expect_equal(task2$task_status, "Skipped")
@@ -369,22 +369,23 @@ test_that("none_skipped trigger skips when one upstream skipped", {
 # always
 ################################################################################
 test_that("always trigger runs successfully regardless of upstream task statuses", {
-  task0 <- sim_task("task0", trigger_rule = "always", fail_prob = 0)
-  task1 <- sim_task("task1", fail_prob = 0) # Succeeded
-  task2 <- sim_task("task2", fail_prob = 1) # Failed
-  task3 <- sim_task("task3", fail_prob = 0) # Skipped
-  task4 <- sim_task("task4", fail_prob = 1) # Failed
+  task0 <- sim_task("task0", trigger_rule = "always", fail_prob = 0) # Expect Succeeded
+  task1 <- sim_task("task1", fail_prob = 0) # Force Succeeded
+  task2 <- sim_task("task2", fail_prob = 1) # Force Failed
+  task3 <- sim_task("task3", fail_prob = 0) # Force Skipped
+  task4 <- sim_task("task4", fail_prob = 1) # Force Failed
 
   task4 |> set_downstream(task3)
+  # task0 will have 3 predecessors, one in each status: Succeeded, Skipped, and Failed
   task0 |> set_upstream(task1, task2, task3)
 
   dag0 <- connect_dag(task0, task1, task2, task3, task4)
 
-  run_task(task4)
-  run_task(task3)
-  run_task(task2)
-  run_task(task1)
-  run_task(task0)
+  task_run(task4)
+  task_run(task3)
+  task_run(task2)
+  task_run(task1)
+  task_run(task0)
 
   expect_equal(task4$task_status, "Failed")
   expect_equal(task3$task_status, "Skipped")
