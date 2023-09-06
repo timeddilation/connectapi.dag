@@ -43,6 +43,16 @@ ConnectTask <- R6::R6Class(
     },
 
 
+    reset = function() {
+      self$task_status <- "Pending"
+      self$task_content_item <- NA
+      self$task_variant <- NA
+      self$task_rendering <- NA
+
+      invisible(self)
+    },
+
+
     df_row = function() {
       data.frame(
         task_name = self$task_name,

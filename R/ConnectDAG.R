@@ -149,9 +149,9 @@ ConnectDAG <- R6::R6Class(
     },
 
 
-    dag_reset = function() {
+    reset = function() {
       for (task in self$dag_tasks) {
-        task$task_status <- "Pending"
+        task$reset()
       }
 
       self$is_complete <- FALSE
