@@ -14,7 +14,9 @@ Imports:
   R6,
   igraph,
   connectapi,
-  pins
+  pins,
+  glue,
+  readr
 RoxygenNote: 7.2.3
 Suggests: 
     testthat (>= 3.0.0),

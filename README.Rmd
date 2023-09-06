@@ -94,6 +94,12 @@ task0 |>
   set_downstream(task1, task2)
 ```
 
+You can visualize a task's immediate dependencies and dependent by plotting is:
+
+```{r, eval=FALSE}
+plot(task0)
+```
+
 ## DAGs
 
 Once all tasks are defined, you may add them to a DAG R6 environment.
