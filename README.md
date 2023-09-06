@@ -105,11 +105,11 @@ plot(my_dag)
 
 ## Running DAGs
 
-Once you have a valid DAG, you can run it simply with the `run_dag`
+Once you have a valid DAG, you can run it simply with the `dag_run`
 function.
 
 ``` r
-run_dag(my_dag)
+dag_run(my_dag)
 ```
 
 After it has ran, you can `plot()` the DAG again to show task statuses.

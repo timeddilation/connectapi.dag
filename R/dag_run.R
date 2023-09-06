@@ -12,10 +12,10 @@
 #' task0 |> set_downstream(task1)
 #'
 #' my_dag <- connect_dag(name = "my_dag", task0, task1)
-#' run_dag(my_dag)
+#' dag_run(my_dag)
 #' @export
 
-run_dag <- function(env, verbose = FALSE) {
+dag_run <- function(env, verbose = FALSE) {
   stopifnot(inherits(env, "ConnectDAG"), is.logical(verbose))
-  env$run_dag(verbose)
+  env$execute(verbose)
 }

@@ -127,7 +127,7 @@ ConnectDAG <- R6::R6Class(
     },
 
 
-    run_dag = function(verbose = FALSE) {
+    execute = function(verbose = FALSE) {
       # check if this instance already attempted to execute
       if (self$is_complete) {
         stop("DAG has already been run, cannot run again.")

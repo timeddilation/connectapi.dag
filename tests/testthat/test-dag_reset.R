@@ -17,7 +17,7 @@ test_that("all tasks reset to pending, and is_complete is FALSE", {
     set_downstream(task2)
 
   dag0 <- connect_dag(task0, task1, task2)
-  run_dag(dag0)
+  dag_run(dag0)
 
   expect_true(dag0$is_complete)
 

@@ -14,7 +14,7 @@
 #'   connect_dag() |>
 #'   dag_add_tasks(task0, task1)
 #'
-#' run_dag(my_dag)
+#' dag_run(my_dag)
 #' @export
 
 dag_add_tasks <- function(env, ...) {

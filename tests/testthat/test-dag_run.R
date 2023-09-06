@@ -9,7 +9,7 @@ test_that("tasks execute with a valid DAG", {
 
   dag0 <- connect_dag(task0, task1, task2)
 
-  run_dag(dag0)
+  dag_run(dag0)
 
   expect_true(dag0$is_complete)
 
@@ -30,9 +30,9 @@ test_that("a DAG does not execute if already executed", {
 
   dag0 <- connect_dag(task0, task1, task2)
 
-  run_dag(dag0)
+  dag_run(dag0)
 
-  expect_error(run_dag(dag0))
+  expect_error(dag_run(dag0))
 
   dag0_task_statuses <-
     lapply(dag0$dag_tasks, {\(task) task$task_status}) |>
@@ -47,7 +47,7 @@ test_that("tasks do not execute with an invalid DAG", {
 
   dag0 <- connect_dag(task0, task1, task2)
 
-  run_dag(dag0) |>
+  dag_run(dag0) |>
     suppressWarnings() |>
     suppressMessages() |>
     expect_error()
