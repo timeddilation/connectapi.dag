@@ -4,6 +4,7 @@ ConnectDAG <- R6::R6Class(
 
   public = list(
     name = NA_character_,
+    pin_name = NA_character_,
     dag_tasks = list(),
     dag_graph = NA,
     is_valid = FALSE,
@@ -51,6 +52,32 @@ ConnectDAG <- R6::R6Class(
     set_name = function(name) {
       stopifnot(is.character(name), length(name) == 1)
       self$name <- name
+      self$set_connect_pin_name()
+
+      invisible(self)
+    },
+
+
+    set_connect_pin_name = function(pin_name = self$name) {
+      stopifnot(is.character(pin_name), length(pin_name) == 1)
+
+      self$pin_name <- gsub("[^-_A-Za-z0-9]", "-", pin_name)
+
+      if (self$pin_name != pin_name) {
+        warning(paste(
+          "Pins only allows alphanumeric characters, dashes, and underscores in application names.",
+          self$pin_name, "will be used instead when writing to a pin board.",
+          "Use dag_set_pin_name() to overwrite this name."
+        ))
+      }
+
+      if (nchar(self$pin_name) < 3 | nchar(self$pin_name) > 64) {
+        warning(paste(
+          "Pins require applications names are between 3 and 64 characters.",
+          "Attempting to write this to a pin board with the current name will results in an error.",
+          "Use dag_set_pin_name() to overwrite this name."
+        ))
+      }
 
       invisible(self)
     },

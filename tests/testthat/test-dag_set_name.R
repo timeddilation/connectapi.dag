@@ -6,6 +6,14 @@ test_that("setting a name changes the name", {
   expect_equal(dag0$name, "bar")
 })
 
+test_that("setting a name changes the pin_name", {
+  dag0 <-
+    connect_dag(name = "foo") |>
+    dag_set_name("bar")
+
+  expect_equal(dag0$pin_name, "bar")
+})
+
 test_that("env is a ConnectDag", {
   expect_error(dag_set_name("foo", "bar"))
 })
