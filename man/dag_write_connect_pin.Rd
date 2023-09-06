@@ -26,8 +26,23 @@ dag_write_connect_pin(
 \description{
 Uses the `pins` package to save the DAG to a Connect Board.
 Pinned DAGs can be easily loaded and run by scheduled jobs.
-After the DAG runs, it can be saved again and versioned.
+}
+\details{
+Once you have created a DAG in a local R environment, you will need
+to save the ConnectDAG R6 environment in a deployed environment (Posit Connect)
+if you want to schedule it in Posit Connect to run.
+
+Once the dag is saved, you can quickly create a deploy-able and schedule-able
+Rmd file using \link[connectapi.dag]{dag_write_rmd}.
+
+After the DAG runs, it can be saved again using this function.
+By default, this function versions the pin that is written.
 This allows you to load specific instances of DAG runs, and evaluate how it ran.
+The versions of the pin serve as an effective log of all DAG run attempts.
+
+Since the DAG contains the ConnectTask environments as well,
+you can see a full snapshot of a DAG run, and all of the task statuses
+that resulted at the end of the DAG execution.
 }
 \examples{
 \dontrun{
