@@ -2,7 +2,7 @@
 #'
 #' Uses the `pins` package to save the DAG to a Connect Board.
 #' Pinned DAGs can be easily loaded and run by scheduled jobs.
-#' After the DAG runs, it is saved again and versioned.
+#' After the DAG runs, it can be saved again and versioned.
 #' This allows you to load specific instances of DAG runs, and evaluate how it ran.
 #'
 #' @param env A ConnectDAG R6 environment created by \link[connectapi.dag]{connect_dag}
@@ -28,7 +28,7 @@
 dag_write_connect_pin <- function(
     env,
     additional_tags = NA_character_,
-    pin_title = paste(env$pin_name, "connectapi.dag"),
+    pin_title = paste(env$name, "connectapi.dag"),
     pin_description = NA_character_,
     ...
 ) {
