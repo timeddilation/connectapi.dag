@@ -46,3 +46,14 @@ test_that("added downstream task references task as upstream", {
   expect_equal(length(task1$upstream_tasks), 1)
   expect_equal(task1$upstream_tasks[[1]]$task_name, "task0")
 })
+
+test_that("adding self as downstream task results in warning, and no link added", {
+  task0 <- connect_task("task0", simulated = T)
+
+  expect_warning(task0 |> set_downstream(task0))
+
+  task0 |>
+    set_downstream(task0) |>
+    suppressWarnings()
+  expect_length(task0$downstream_tasks, 0)
+})

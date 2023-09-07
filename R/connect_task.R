@@ -42,6 +42,8 @@
 #' @examples
 #' task0 <- connect_task("task1", trigger_rule = "all_done", simulated = TRUE)
 #' task0
+#'
+#' @importFrom connectapi connect
 #' @export
 
 connect_task <- function(

@@ -1,23 +1,58 @@
+#' Class representing a DAG of Connect Tasks
+#'
+#' @name ConnectDAG
+#'
+#' @section Usage:
+#' \preformatted{
+#' dag <- ConnectDAG$new(name = "dag")
+#' }
+#'
+#' @section Details:
+#'
+#' This class requires ConnectTasks are added to it,
+#' which are themselves linked in a dependency chain.
+#' As tasks are added, each tasks' graph is unioned in the DAG's graph.
+#' It can then be validated to ensure it is in fact a Directed Acyclic Graph.
+#' Once validated, the DAG can orchestrate tasks in Posit Connect.
+#'
+#' @importFrom R6 R6Class
+#' @importFrom igraph V union
+#' @importFrom igraph topo_sort
+#' @importFrom igraph is.connected
+#' @importFrom igraph is.dag
+#' @importFrom igraph as_data_frame
+#' @importFrom igraph identical_graphs
+#'
+#' @family R6 classes
+#' @export
+
 ConnectDAG <- R6::R6Class(
   "ConnectDAG",
-
-
   public = list(
+    #' @field name The user-defined name of this DAG. Useful for organizing multiple DAGs.
     name = NA_character_,
+    #' @field pin_name The name of pin on Connect where this DAG is saved.
     pin_name = NA_character_,
+    #' @field dag_tasks A list of ConnectTasks this DAG is orchestrating.
     dag_tasks = list(),
+    #' @field dag_graph An igraph object of all linked tasks in this DAG
     dag_graph = NA,
+    #' @field is_valid Indicates if the tasks' dependency chain forms a proper DAG. DO NOT MODIFY DIRECTLY!
     is_valid = FALSE,
+    #' @field is_complete Indicates if all tasks in this DAG have been evaluated for execution.
     is_complete = FALSE,
 
-
+    #' @description Initializes a new ConnectDAG
+    #' @param name A personalized name for the DAG
+    #' @param ... Connect Tasks to add to the graph
     initialize = function(name = "new_dag", ...) {
       self$set_name(name)
 
       dag_add_tasks(self, ...)
     },
 
-
+    #' @description Adds a ConnectTask to this DAG
+    #' @param task a ConnectTask R6 environment
     add_task = function(task) {
       stopifnot(inherits(task, "ConnectTask"))
 
@@ -28,7 +63,8 @@ ConnectDAG <- R6::R6Class(
       invisible(self)
     },
 
-
+    #' @description Removes a ConnectTask from this DAG
+    #' @param task a ConnectTask R6 environment
     remove_task = function(task) {
       stopifnot(inherits(task, "ConnectTask"))
 
@@ -48,7 +84,8 @@ ConnectDAG <- R6::R6Class(
       invisible(self)
     },
 
-
+    #' @description Sets the name of this DAG, if needed to change after initializing
+    #' @param name A scalar character of the name
     set_name = function(name) {
       stopifnot(is.character(name), length(name) == 1)
       self$name <- name
@@ -57,7 +94,8 @@ ConnectDAG <- R6::R6Class(
       invisible(self)
     },
 
-
+    #' @description Sets the name used when using \link[connectapi.dag]{dag_write_connect_pin}
+    #' @param pin_name A scalar character of the name desired or required
     set_connect_pin_name = function(pin_name = self$name) {
       stopifnot(is.character(pin_name), length(pin_name) == 1)
 
@@ -82,7 +120,7 @@ ConnectDAG <- R6::R6Class(
       invisible(self)
     },
 
-
+    #' @description Prints a plotly graph of the DAG's graph
     plot = function() {
       private$validate_dag()
       if (is(self$dag_graph, "igraph"))
@@ -91,13 +129,14 @@ ConnectDAG <- R6::R6Class(
         return(invisible(NULL))
     },
 
-
+    #' @description Returns a character vector of all added ConnectTasks' GUIDs
     task_guids = function() {
       lapply(self$dag_tasks, {\(task) task$task_guid}) |>
         unlist()
     },
 
-
+    #' @description Returns a data.frame of all tasks added to this DAG
+    #' @param revalidate_dag Should the DAG be validated before returning the data.frame?
     tasks_as_df = function(revalidate_dag = TRUE) {
       if (revalidate_dag) private$validate_dag()
 
@@ -126,7 +165,8 @@ ConnectDAG <- R6::R6Class(
       return(tasks_df)
     },
 
-
+    #' @description Executes all tasks, in order, that are added to this DAG
+    #' @param verbose Should it print messages as it executes tasks?
     execute = function(verbose = FALSE) {
       # check if this instance already attempted to execute
       if (self$is_complete) {
@@ -148,7 +188,7 @@ ConnectDAG <- R6::R6Class(
       invisible(self)
     },
 
-
+    #' @description Resets the DAG to an initial state, allowing it to run again
     reset = function() {
       for (task in self$dag_tasks) {
         task$reset()
@@ -159,13 +199,18 @@ ConnectDAG <- R6::R6Class(
       invisible(self)
     },
 
-
+    #' @description Determines if all added tasks form a valid DAG, setting the `is_valid` field
+    #' @param verbose Should it print a message to the console of the result?
     evaluate_validity = function(verbose = TRUE) {
       stopifnot(is.logical(verbose))
       private$validate_dag()
 
       if (self$is_valid & verbose) {
         message("DAG is valid!")
+      }
+
+      if (!self$is_valid & verbose) {
+        message("Oh no! DAG is invalid.")
       }
 
       invisible(self)

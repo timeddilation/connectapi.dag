@@ -62,4 +62,5 @@ The following trigger rules are available:
 \examples{
 task0 <- connect_task("task1", trigger_rule = "all_done", simulated = TRUE)
 task0
+
 }
