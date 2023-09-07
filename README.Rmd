@@ -58,8 +58,19 @@ CONNECT_SERVER = https://connect.example.com
 CONNECT_API_KEY = your-api-key
 ```
 
-Once you have the basics figured out with `connectapi`, you can start
+It is highly recommended you use these exact environment variables for
+authentication, as they are used by both `connectapi` and `pins`.
+
+Once you have the basics figured out with `connectapi`, 
+and you can create a connect client using `connectapi::connect()` you can start
 defining **tasks** and **DAGs**.
+
+Secondly, it is suggested to familiarize yourself with [pins](https://github.com/rstudio/pins-r).
+Specifically, this package uses `pins::board_connect()` under the hood for
+managing DAG deployments to Posit Connect.
+Although, it is not required to use this package's built-in features for
+DAG deployments, as you can do whatever you want with the DAG environment
+once it has been defined.
 
 ## Overview
 
@@ -75,7 +86,7 @@ library(connectapi.dag)
 
 # Define Tasks
 # Use `simulated = TRUE` to skip Posit Validation
-# Real Posit Tasks must be defined with `simulated = FALSE` (the default)
+# Real Connect Tasks must be defined with `simulated = FALSE` (the default)
 task0 <- connect_task("guid-0", simulated = TRUE)
 task1 <- connect_task("guid-1", simulated = TRUE)
 task2 <- connect_task("guid-2", simulated = TRUE)
@@ -284,6 +295,7 @@ The DAG job itself does not raise errors when a task fails, as it expects some t
 
 ## Future Plans
 
-A Shiny application may be built to list all published DAGs, plot them,
+A Shiny application may be built to list all published DAGs, 
+view the history of DAG executions, plot them,
 re-run them, and provide other administration features.
 This shiny app may be ran locally, in workbench, or as a deployed app on Posit Connect.
