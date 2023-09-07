@@ -88,7 +88,7 @@ task4 |>
 my_dag <-
   connect_dag() |>
   dag_add_tasks(task0, task1, task2, task3, task4) |>
-  dag_set_name("my_dag") |>
+  dag_set_name("simulated_dag") |>
   dag_validate()
 
 # save the DAG to Posit Connect as a pin
@@ -189,7 +189,11 @@ create task dependencies before or after creating the DAG.
 my_dag <- connect_dag(task1, task2, task3, name = "my_dag")
 ```
 
-With the dag object created, you can check the validity of the DAG. If
+Note: All tasks that are linked in the dependency chain must be added to
+the DAG. The DAG will not validate if it detects a task has a dependency
+link, and that task is not added to the DAG.
+
+With the DAG object created, you can check the validity of the DAG. If
 any issues are found, a message will return in the console for why it is
 invalid. It is recommended you always run `dag_validate` on a DAG before
 storing it or trying to execute it. When a DAG is executed, it will
