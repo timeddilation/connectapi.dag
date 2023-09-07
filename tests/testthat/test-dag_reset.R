@@ -35,6 +35,7 @@ test_that("all tasks reset to pending and envs are cleared, and is_complete is F
     lapply(dag0$dag_tasks, {\(task) task$task_variant}) |>
     unlist()
   expect_true(all(is.na(task_variants)))
+
   ## no tasks have a task_rendering
   task_renderings <-
     lapply(dag0$dag_tasks, {\(task) task$task_rendering}) |>

@@ -82,7 +82,7 @@ ConnectTask <- R6::R6Class(
 
     plot = function() {
       if (inherits(self$task_graph, "igraph"))
-        plot(self$task_graph, layout = layout_as_tree(self$task_graph))
+        plot(self$task_graph, layout = igraph::layout_as_tree(self$task_graph))
       else {
         message("No upstream or downstream tasks to plot")
         return(invisible(NULL))

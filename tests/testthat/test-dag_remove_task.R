@@ -8,7 +8,7 @@ test_that("specified task is removed", {
 
   expect_length(dag0$dag_tasks, 2)
 
-  task_ids <- dag0$dag_task_guids()
+  task_ids <- dag0$task_guids()
   expect_true(all(task_ids %in% c("task0", "task2")))
 })
 

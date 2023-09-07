@@ -21,7 +21,7 @@ ConnectDAG <- R6::R6Class(
     add_task = function(task) {
       stopifnot(inherits(task, "ConnectTask"))
 
-      if (!task$task_guid %in% self$dag_task_guids()) {
+      if (!task$task_guid %in% self$task_guids()) {
         self$dag_tasks <- append(self$dag_tasks, task)
       }
 
@@ -35,7 +35,7 @@ ConnectDAG <- R6::R6Class(
       task_id <- task$task_guid
 
       task_idx <-
-        self$dag_task_guids() |>
+        self$task_guids() |>
         {\(task_ids) task_ids == task_id}() |>
         which()
 
@@ -92,7 +92,7 @@ ConnectDAG <- R6::R6Class(
     },
 
 
-    dag_task_guids = function() {
+    task_guids = function() {
       lapply(self$dag_tasks, {\(task) task$task_guid}) |>
         unlist()
     },
