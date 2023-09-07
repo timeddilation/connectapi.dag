@@ -61,7 +61,54 @@ CONNECT_API_KEY = your-api-key
 Once you have the basics figured out with `connectapi`, you can start
 defining **tasks** and **DAGs**.
 
-## Tasks
+## Overview
+
+Create and deploy DAGs to orchestrate scheduled jobs on Posit Connect in 4 steps:
+
+- Define Tasks and dependency chains
+- Define a DAG as a collection of tasks
+- Store the DAG in persistent storage using pins
+- Schedule the DAG to run, and remove schedules from individual tasks
+
+```{r, eval=FALSE}
+library(connectapi.dag)
+
+# Define Tasks
+# Use `simulated = TRUE` to skip Posit Validation
+# Real Posit Tasks must be defined with `simulated = FALSE` (the default)
+task0 <- connect_task("guid-0", simulated = TRUE)
+task1 <- connect_task("guid-1", simulated = TRUE)
+task2 <- connect_task("guid-2", simulated = TRUE)
+task3 <- connect_task("guid-3", simulated = TRUE)
+task4 <- connect_task("guid-4", trigger_rule = "one_success", simulated = TRUE)
+
+# define dependency chain
+task1 |>
+  set_upstream(task0) |>
+  set_downstream(task2, task3)
+
+task4 |>
+  set_upstream(task2, task3)
+
+# create the DAG
+my_dag <-
+  connect_dag() |>
+  dag_add_tasks(task0, task1, task2, task3, task4) |>
+  dag_set_name("my_dag") |>
+  dag_validate()
+
+# save the DAG to Posit Connect as a pin
+dag_write_connect_pin(my_dag)
+
+# create a deployment Rmd to read the DAG from storage and execute
+dag_write_rmd(my_dag)
+```
+
+Open the created Rmd file and click to deploy to Connect!
+
+## Details
+
+### Tasks
 
 The most fundamental part of creating a DAG is to define the tasks you want 
 included in the DAG.
@@ -69,19 +116,19 @@ The tasks are created by specifying the GUID of the content item published
 to your Posit Connect server, with an option for the _trigger_rule_ to follow.
 By default, the _trigger_rule_ is **all_success**, meaning all predecessor tasks
 completed successfully.
+View the man page of the `connect_task` function for a list of all available trigger rules.
+
 If a task has no predecessors, it will always run.
 The `connect_task` function returns an R6 environment that manages the state
 of the task.
 
 ```{r, eval=FALSE}
-library(connectapi.dag)
-
 task0 <- connect_task("4af62803-c9aa-45f4-8336-0ea7bbdd9334")
 task1 <- connect_task("711b8c7a-97ef-4343-9e55-0d4d426ebf59")
 task2 <- connect_task("eda729a2-e3f1-4063-b606-e52d01e9aa23")
 ```
 
-### Task Dependencies
+#### Task Dependencies
 
 Two functions are provided to create dependencies: 
 `set_upstream()` and `set_downstream()`.
@@ -94,24 +141,63 @@ task0 |>
   set_downstream(task1, task2)
 ```
 
-You can visualize a task's immediate dependencies and dependent by plotting is:
+You can visualize a task's immediate dependencies and dependents by plotting it:
 
 ```{r, eval=FALSE}
 plot(task0)
 ```
 
-## DAGs
+#### Simulated Tasks
+
+For simple happy-path testing, you may use `simulated = TRUE` parameter
+in the `connect_task()` function.
+Simulated tasks created this way will always run successfully 
+and skip validation with Posit Connect.
+
+To test what happens in failure scenarios, you may instead use the
+`sim_task()` function.
+This function also creates a simulated ConnectTask environment, 
+but allows you to specify a probability of failure.
+
+This gives you a great way to visualize what happens under failure scenarios.
+
+```{r, eval=FALSE}
+sim_task0 <- sim_task("guid-0", fail_prob = 0)
+sim_task1 <- sim_task("guid-1", fail_prob = 0)
+sim_task2 <- sim_task("guid-2", fail_prob = 0.2)
+sim_task3 <- sim_task("guid-3", fail_prob = 1)
+sim_task4 <- sim_task("guid-4", trigger_rule = "one_success", fail_prob = 0)
+
+# define dependency chain
+sim_task1 |>
+  set_upstream(sim_task0) |>
+  set_downstream(sim_task2, sim_task3)
+
+sim_task4 |>
+  set_upstream(sim_task2, sim_task3)
+
+sim_dag <-
+  connect_dag(sim_task0, sim_task1, sim_task2, sim_task3, sim_task4) |>
+  dag_validate() |>
+  dag_run()
+
+plot(sim_dag)
+```
+
+### DAGs
 
 Once all tasks are defined, you may add them to a DAG R6 environment.
 This object will validate the tasks are in fact linked as a DAG.
 You may create task dependencies before or after creating the DAG.
 
 ```{r, eval=FALSE}
-my_dag <- connect_dag(task1, task2, task3)
+my_dag <- connect_dag(task1, task2, task3, name = "my_dag")
 ```
 
 With the dag object created, you can check the validity of the DAG.
 If any issues are found, a message will return in the console for why it is invalid.
+It is recommended you always run `dag_validate` on a DAG before storing it or trying to execute it.
+When a DAG is executed, it will check validity and raise an error if the DAG is invalid.
 
 ```{r, eval=FALSE}
 dag_validate(my_dag)
@@ -126,9 +212,12 @@ This can be useful when troubleshooting circular references, islands, or other i
 plot(my_dag)
 ```
 
-## Running DAGs
+### Running DAGs
 
 Once you have a valid DAG, you can run it simply with the `dag_run` function.
+Calling this from a local environment will execute the tasks in the DAG.
+However, this does not yet schedule the DAG as a whole.
+Keep reading below for deployment options.
 
 ```{r, eval=FALSE}
 dag_run(my_dag)
@@ -142,21 +231,59 @@ A task will be skipped if it's _trigger_rule_ requirement is not met.
 If you ever run into issues executing a DAG, it may be useful to plot the DAG
 to see where the issue arrised.
 
+### Storing DAGs
+
+Once a DAG is defined, you will want to save it to persistent storage so you can later retrieve it to run it again.
+You can use any method you want for this portion, as you can simply save the DAG environment with `saveRDS`.
+For instance, if you want to use S3 for your persistent storage and versioning, you can use the `paws.storage` package instead.
+Or, you can save the DAG as an RDS object in your project's repository,
+and include it in the bundle you publish to Posit Connect.
+
+However, since this package is explicitly for Posit Connect, integration to use Posit Connect persistent storage with the `pins` package is already built-in.
+
+The `dag_write_connect_pin()` function handles most of the work for you.
+The DAG environment has a `pin_name` attribute, which can be changed with the `dag_set_pin_name()` function.
+
+```{r, eval=FALSE}
+dag_write_connect_pin(my_dag)
+```
+
+### Scheduling DAGs
+
+Scheduling a DAG works the same way as scheduling any other job on Posit Connect.
+You must publish a bundle that can be rendered (Rmd, quarto, jupyter, etc.)
+that will read the DAG environment and call the `run_dag()` method on it.
+
+This package simplifies the process if you're also using pins on Connect for persistent storage.
+After saving the DAG to Connect using pins, you can use `dag_write_rmd()` function to generate the Rmd file needed to execute and schedule the DAG.
+
+```{r, eval=FALSE}
+dag_write_rmd(my_dag)
+```
+
+Note that this function requires the original DAG environment.
+The DAG contains the name of the pin on Posit Connect.
+This function will first validate the pin exists on your Posit Connect Server.
+Once validated, it will compose the entire job that you can then publish and schedule.
+
+Once published and scheduled, you can remove any schedules you have on existing tasks within your DAG.
+
+Part of the defaults for this job is to save the DAG again, overwriting and versioning the existing DAG.
+It is imperative the DAG's `pin_name` is identical to the pin it is reading.
+When this job reads the DAG, it will first reset the DAG using `dag_reset()`,
+which resets all task statuses and the DAG's internal state.
+
+This allows you to have a log of all previous DAG runs, and which tasks succeeded, failed, or skipped.
+It is planned for the future to introduce functions and tools to read previous versions of the DAGs and view all the tasks states for prior runs to allow investigation of issues, and possibly the ability to re-run specific tasks.
+
+## Other Notes
+
+Tasks that the DAG runs follow any settings you have created for those tasks.
+For instance, email on failure will still occur if the task render fails.
+The DAG job itself does not raise errors when a task fails, as it expects some tasks might fail.
+
 ## Future Plans
 
-Currently, to deploy a DAG, you would need to publish an RMD that defines all 
-of the tasks and the DAG.
-The result of the DAG execution is not saved anywhere,
-and it's difficult to and manage changes on.
-
-In the future, the plan is to use the `pins` package to deploy the DAGs to a pin
-on your Posit Connect server. A deployment of the DAG would then version the
-DAG on the Pin.
-An RMD would still be required to pull the DAG from the pin and run it.
-
-Following this, the job that runs the DAG would clone the DAG, and save the state
-of the completed DAG to a pin.
-This would allow you to load that DAG into a new R environment if it ran into any issues, and re-execute the failed/skipped tasks.
-
-Finally, a Shiny application may be built to list all published DAGs, plot them,
+A Shiny application may be built to list all published DAGs, plot them,
 re-run them, and provide other administration features.
+This shiny app may be ran locally, in workbench, or as a deployed app on Posit Connect.
