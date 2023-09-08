@@ -27,7 +27,13 @@ experimental.
 
 ## Installation
 
-TODO: No instruction yet.
+This package is not currently available on CRAN.
+
+To install the development version:
+
+``` r
+install.packages("timeddilation/connectapi.dag")
+```
 
 ## Getting Started
 
@@ -186,7 +192,7 @@ This object will validate the tasks are in fact linked as a DAG. You may
 create task dependencies before or after creating the DAG.
 
 ``` r
-my_dag <- connect_dag(task1, task2, task3, name = "my_dag")
+my_dag <- connect_dag(task0, task1, task2, name = "my_dag")
 ```
 
 Note: All tasks that are linked in the dependency chain must be added to
@@ -302,3 +308,10 @@ A Shiny application may be built to list all published DAGs, view the
 history of DAG executions, plot them, re-run them, and provide other
 administration features. This shiny app may be ran locally, in
 workbench, or as a deployed app on Posit Connect.
+
+Currently, tasks in a DAG cannot be run concurrently, even when it
+should be possible to be running multiple tasks at the same time. This
+is a major optimization that can be made, but requires a lot of thought
+and planning to execute correctly and give the user proper control of
+that behavior. When this tool becomes more mature, this kind of feature
+will be added.
