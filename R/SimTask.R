@@ -94,7 +94,7 @@ SimTask <- R6::R6Class(
 #'
 #' @export
 sim_task <- function(guid, trigger_rule = "all_success", fail_prob = 0.2) {
-  trigger_rule <- match.arg(trigger_rule, connectapi.dag:::trigger_options)
+  trigger_rule <- match.arg(trigger_rule, trigger_options)
   stopifnot(is.character(guid))
 
   SimTask$new(guid, trigger_rule, fail_prob)

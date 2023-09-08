@@ -1,5 +1,29 @@
-plotly_dag_graph <- function(connect_dag) {
-  requireNamespace("plotly")
+#' Visualize a ConnectDAG graph with plotly
+#'
+#' Create an interactive plotly visual of the DAG.
+#' This function is not exported.
+#' It is called internally by the ConnectDAG class using the `plot` method.
+#'
+#' @param connect_dag A ConnectDAG R6 environment
+#'
+#' @return A plotly graph
+#'
+#' @examples
+#' task0 <- connect_task("task0", simulated = TRUE)
+#' task1 <- connect_task("task1", simulated = TRUE)
+#' task0 |> set_downstream(task1)
+#'
+#' my_dag <- connect_dag(task0, task1)
+#' plot(my_dag)
+#'
+#' @importFrom plotly plot_ly
+#' @importFrom igraph as_data_frame
+#' @importFrom stats setNames
+
+dag_plotly <- function(connect_dag) {
+  stopifnot(inherits(connect_dag, "ConnectDAG"))
+
+  suppressMessages(dag_validate(connect_dag))
 
   dag_graph <- connect_dag$dag_graph
   tasks_df <- connect_dag$tasks_as_df(revalidate_dag = FALSE)
