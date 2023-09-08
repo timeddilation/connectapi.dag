@@ -35,3 +35,41 @@ test_that("fail_prob between 0 and 1 will always either succeed or fail", {
 
   expect_true(sim_task0$task_status %in% c("Succeeded", "Failed"))
 })
+
+test_that("non-verbose task execution does not print message", {
+  sim_task0 <- sim_task("foo", fail_prob = 0)
+
+  expect_no_message(task_run(sim_task0, verbose = FALSE))
+})
+
+test_that("verbose task execution prints success message", {
+  sim_task0 <- sim_task("foo", fail_prob = 0)
+
+  expect_message(
+    task_run(sim_task0, verbose = TRUE),
+    regexp = "Task Succeeded"
+  ) |> suppressMessages()
+})
+
+test_that("verbose task execution prints failed message", {
+  sim_task0 <- sim_task("foo", fail_prob = 1)
+
+  expect_message(
+    task_run(sim_task0, verbose = TRUE),
+    regexp = "Task Failed"
+  ) |> suppressMessages()
+})
+
+test_that("verbose task execution prints skipped message", {
+  sim_task0 <- sim_task("foo", fail_prob = 1)
+  sim_task1 <- sim_task("bar", fail_prob = 0)
+
+  sim_task0 |> set_downstream(sim_task1)
+
+  task_run(sim_task0)
+
+  expect_message(
+    task_run(sim_task1, verbose = TRUE),
+    regexp = "Task Skipped"
+  ) |> suppressMessages()
+})

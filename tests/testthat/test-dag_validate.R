@@ -91,8 +91,9 @@ test_that("one or more islands is an invalid DAG", {
   task2 <- connect_task("task2", simulated = TRUE)
   task3 <- connect_task("task3", simulated = TRUE)
 
-  task0 |> set_downstream(task1)
-  task2 |> set_downstream(task3)
+  task0 |> set_downstream(task1) # connected
+  # disconnected from:
+  task2 |> set_downstream(task3) # connected
 
   dag0 <-
     connect_dag(task0, task1, task2, task3) |>
@@ -116,4 +117,25 @@ test_that("all tasks with a link to another task are provided to the dag", {
     suppressWarnings()
 
   expect_false(dag0$is_valid)
+})
+
+test_that("adding a task without a link to others is invalid", {
+  task0 <- connect_task("task0", simulated = TRUE)
+  task1 <- connect_task("task1", simulated = TRUE)
+  task2 <- connect_task("task2", simulated = TRUE) # unlinked
+
+  task0 |> set_downstream(task1)
+
+  dag0 <-
+    connect_dag(task0, task1, task2) |>
+    dag_validate() |>
+    suppressMessages() |>
+    suppressWarnings()
+
+  expect_false(dag0$is_valid)
+
+  expect_warning(
+    connect_dag(task0, task1, task2) |> dag_validate() |> suppressMessages(),
+    regexp = "A task is added to the DAG, but not set as upstream or downstream of other tasks"
+  ) |> suppressWarnings()
 })
