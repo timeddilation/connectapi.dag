@@ -73,3 +73,14 @@ test_that("verbose task execution prints skipped message", {
     regexp = "Task Skipped"
   ) |> suppressMessages()
 })
+
+test_that("attempt to plot without linked tasks prints message and returns NULL", {
+  sim_task0 <- sim_task("task0")
+
+  expect_message(
+    plot(sim_task0),
+    regexp = "No upstream or downstream tasks to plot"
+  ) |> suppressMessages()
+
+  expect_null(plot(sim_task0) |> suppressMessages())
+})

@@ -124,7 +124,7 @@ ConnectDAG <- R6::R6Class(
     plot = function() {
       private$validate_dag()
       if (is(self$dag_graph, "igraph"))
-        connectapi.dag:::dag_plotly(self)
+        dag_plotly(self)
       else
         return(invisible(NULL))
     },
