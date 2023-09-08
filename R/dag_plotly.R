@@ -17,7 +17,12 @@
 #' plot(my_dag)
 #'
 #' @importFrom plotly plot_ly
+#' @importFrom plotly add_trace
+#' @importFrom plotly add_text
+#' @importFrom plotly add_annotations
+#' @importFrom plotly layout
 #' @importFrom igraph as_data_frame
+#' @importFrom igraph layout_as_tree
 #' @importFrom stats setNames
 
 dag_plotly <- function(connect_dag) {
