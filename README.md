@@ -1,4 +1,12 @@
 
+<!-- badges: start -->
+
+[![R build
+status](https://github.com/timeddilation/connectapi.dag/actions/workflows/check-standard.yaml/badge.svg)](https://github.com/timeddilation/connectapi.dag/actions)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+<!-- badges: end -->
+
 # connectapi.dag
 
 This package allows for the creation of DAGs, inspired by Apache
