@@ -4,15 +4,24 @@
 \alias{sim_task}
 \title{Simulate a Connect Task}
 \usage{
-sim_task(task_name, trigger_rule = "all_success", fail_prob = 0.2)
+sim_task(guid, trigger_rule = "all_success", fail_prob = 0.2)
 }
 \arguments{
-\item{task_name}{A scalar character for the name of the task deployed to Posit Connect}
+\item{guid}{A scalar character for the guid/name of the task to simulate}
 
 \item{trigger_rule}{A scalar character that defines state of dependency (upstream) tasks must be in to execute}
 
 \item{fail_prob}{A value between 0 and 1 for the probability of task failure}
 }
+\value{
+A SimTask E6 environment
+}
 \description{
 Simulates a connect task evaluation, with an optional probability for the task to fail.
+For a full list of available trigger rules, refer to \link[connectapi.dag]{connect_task}.
+}
+\examples{
+sim_task0 <- sim_task("foo", trigger_rule = "always", fail_prob = 0)
+task_run(sim_task0)
+
 }

@@ -31,7 +31,8 @@ for the purposes of creating a DAG.
 
 \seealso{
 Other R6 classes: 
-\code{\link{ConnectDAG}}
+\code{\link{ConnectDAG}},
+\code{\link{SimTask}}
 }
 \concept{R6 classes}
 \section{Public fields}{

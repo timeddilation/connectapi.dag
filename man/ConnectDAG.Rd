@@ -27,7 +27,8 @@ Once validated, the DAG can orchestrate tasks in Posit Connect.
 
 \seealso{
 Other R6 classes: 
-\code{\link{ConnectTask}}
+\code{\link{ConnectTask}},
+\code{\link{SimTask}}
 }
 \concept{R6 classes}
 \section{Public fields}{

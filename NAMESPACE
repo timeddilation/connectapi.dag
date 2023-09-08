@@ -2,6 +2,7 @@
 
 export(ConnectDAG)
 export(ConnectTask)
+export(SimTask)
 export(connect_dag)
 export(connect_task)
 export(dag_add_tasks)
