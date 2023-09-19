@@ -68,6 +68,9 @@ to Posit Connect. Although, it is not required to use this package’s
 built-in features for DAG deployments, as you can do whatever you want
 with the DAG environment once it has been defined.
 
+In order to use the defaults with above environment variables, `pins` V
+\>= 1.1.0 is required.
+
 ## Overview
 
 Create and deploy DAGs to orchestrate scheduled jobs on Posit Connect in

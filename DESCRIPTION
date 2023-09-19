@@ -14,7 +14,7 @@ Imports:
   R6,
   igraph,
   connectapi,
-  pins,
+  pins (>= 1.1.0),
   glue,
   readr,
   plotly,
