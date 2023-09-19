@@ -40,7 +40,7 @@ This package is not currently available on CRAN.
 To install the development version:
 
 ``` r
-install.packages("timeddilation/connectapi.dag")
+devtools::install_github("timeddilation/connectapi.dag")
 ```
 
 ## Getting Started

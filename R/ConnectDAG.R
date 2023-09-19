@@ -47,7 +47,6 @@ ConnectDAG <- R6::R6Class(
     #' @param ... Connect Tasks to add to the graph
     initialize = function(name = "new_dag", ...) {
       self$set_name(name)
-
       dag_add_tasks(self, ...)
     },
 
