@@ -7,7 +7,7 @@
 dag_write_rmd(
   env,
   pin_name = env$pin_name,
-  file = paste0(env$pin_name, ".Rmd"),
+  file = paste0(env$pin_name, "_job", ".Rmd"),
   ...
 )
 }

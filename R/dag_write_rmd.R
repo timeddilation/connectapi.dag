@@ -57,7 +57,7 @@
 dag_write_rmd <- function(
   env,
   pin_name = env$pin_name,
-  file = paste0(env$pin_name, ".Rmd"),
+  file = paste0(env$pin_name, "_job", ".Rmd"),
   ...
 ) {
   stopifnot(
