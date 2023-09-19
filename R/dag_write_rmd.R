@@ -122,11 +122,20 @@ dag_write_rmd <- function(
     ", .open = "{{", .close = "}}"
   )
 
+  rmd_dag_results <- glue::glue(
+    "
+    ```{r results}
+    dag_as_df(dag_env)
+    ```
+    ", .open = "{{", .close = "}}"
+  )
+
   rmd_txt <- c(
     rmd_header,
     rmd_dag_setup,
     rmd_dag_run,
-    rmd_dag_save
+    rmd_dag_save,
+    rmd_dag_results
   ) |> paste0(collapse = "\n\n")
 
   readr::write_lines(rmd_txt, file)
