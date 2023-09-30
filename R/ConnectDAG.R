@@ -75,6 +75,8 @@ ConnectDAG <- R6::R6Class(
       cat("  Pin Name:", self$pin_name, "\n")
       cat("  Tasks:", length(self$tasks), "\n")
       cat(print_df)
+
+      invisible(self)
     },
 
     #' @description Adds a ConnectTask to this DAG
