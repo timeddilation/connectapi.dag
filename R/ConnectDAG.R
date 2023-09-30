@@ -137,8 +137,7 @@ ConnectDAG <- R6::R6Class(
 
     #' @description Returns a character vector of all added ConnectTasks' GUIDs
     task_guids = function() {
-      lapply(self$dag_tasks, {\(task) task$task_guid}) |>
-        unlist()
+      vapply(self$dag_tasks, {\(task) task$task_guid}, character(1))
     },
 
     #' @description Returns a data.frame of all tasks added to this DAG
@@ -237,15 +236,11 @@ ConnectDAG <- R6::R6Class(
     update_dag_graph = function() {
       # logical vector of actual graphs, not NAs
       task_graphs <- lapply(self$dag_tasks, {\(task) task$task_graph})
-
-      valid_task_graphs <-
-        lapply(task_graphs, is, "igraph") |>
-        unlist()
+      valid_task_graphs <- vapply(task_graphs, is, logical(1), "igraph")
 
       # first check if there are any linked tasks
       # if there are none, then we cannot generate a graph
-      tasks_linked <-
-        any(valid_task_graphs)
+      tasks_linked <- any(valid_task_graphs)
 
       if (!tasks_linked) {
         message("No tasks are linked in the graph.")
@@ -280,8 +275,7 @@ ConnectDAG <- R6::R6Class(
 
       ### Validation Step 2-3
       task_list_names <-
-        lapply(self$dag_tasks, {\(task) task$task_name}) |>
-        unlist()
+        vapply(self$dag_tasks, {\(task) task$task_name}, character(1))
       task_node_names <- names(igraph::V(self$dag_graph))
 
       # check if all nodes in the graph have a task in the dag task list

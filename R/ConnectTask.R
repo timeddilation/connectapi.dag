@@ -215,6 +215,7 @@ ConnectTask <- R6::R6Class(
           self$linked_task_names("downstream_tasks")
         )
       } else {
+        # No idea why neither `vapply` nor `sapply` work here???
         task_names <-
           lapply(get(link, envir = self), {\(task) task$task_name}) |>
           unlist()
@@ -275,8 +276,7 @@ ConnectTask <- R6::R6Class(
 
     #' @description Returns a character vector of upstream tasks' statuses.
     upstream_task_statuses = function() {
-      lapply(self$upstream_tasks, {\(task) task$task_status}) |>
-        unlist()
+      vapply(self$upstream_tasks, {\(task) task$task_status}, character(1))
     },
 
     #' @description Returns a logical indicating if this task can run based on the `trigger_rule`

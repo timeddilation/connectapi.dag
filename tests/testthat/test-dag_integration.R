@@ -6,8 +6,7 @@ test_that("DAG environment is in expected state", {
   expect_length(dag0$dag_tasks, 4)
   expect_false(dag0$is_complete)
 
-  dag_task_statuses <-
-    lapply(dag0$dag_tasks, {\(task) task$task_status}) |>
-    unlist()
+  dag_task_statuses <- 
+    vapply(dag0$dag_tasks, {\(task) task$task_status}, character(1))
   expect_true(all(dag_task_statuses == "Pending"))
 })
