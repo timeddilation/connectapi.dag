@@ -79,13 +79,22 @@ ConnectTask <- R6::R6Class(
         ))
       )
 
+      task_app_mode <- self$content$app_mode
+      known_valid_app_modes <- c("jupyter-static", "rmd-static", "quarto-static")
+
+      if (!task_app_mode %in% known_valid_app_modes) {
+        warning(paste0(
+          "This content's app_mode `", task_app_mode, "` ",
+          "is not in the known list of apps that can be rendered. ",
+          "You may not be able to run this task. ",
+          "If this warning is being raised in a valid scenario, ",
+          "please submit an issue on github. ",
+          "https://github.com/timeddilation/connectapi.dag/issues", "\n"
+        ))
+      }
+
       self$task_name <-
         self$task_content_item$content$title
-
-      # TODO: See if there is a way to validate the content item here
-      # right now, I do not know if the content can be rendered until you attempt to call render
-      # It is possible to specify an API, Shiny App, etc as a task in the DAG
-      # This should fail validation. Only items that render should be allowed
     },
 
     #' @description Resets the task to an initial state, read to be executed
