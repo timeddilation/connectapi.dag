@@ -49,6 +49,7 @@ SimTask <- R6::R6Class(
       self$name <- guid
       self$status <- "Pending"
       self$trigger_rule <- trigger_rule
+      self$app_mode <- "simulation"
       self$fail_prob <- fail_prob
     },
 

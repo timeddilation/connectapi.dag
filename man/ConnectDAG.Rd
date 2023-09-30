@@ -58,6 +58,7 @@ Other R6 classes:
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-ConnectDAG-new}{\code{ConnectDAG$new()}}
+\item \href{#method-ConnectDAG-print}{\code{ConnectDAG$print()}}
 \item \href{#method-ConnectDAG-add_task}{\code{ConnectDAG$add_task()}}
 \item \href{#method-ConnectDAG-remove_task}{\code{ConnectDAG$remove_task()}}
 \item \href{#method-ConnectDAG-set_name}{\code{ConnectDAG$set_name()}}
@@ -89,6 +90,16 @@ Initializes a new ConnectDAG
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConnectDAG-print"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectDAG-print}{}}}
+\subsection{Method \code{print()}}{
+Displays summary of environment in console.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$print()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConnectDAG-add_task"></a>}}

@@ -59,6 +59,24 @@ ConnectDAG <- R6::R6Class(
       dag_add_tasks(self, ...)
     },
 
+    #' @description Displays summary of environment in console.
+    print = function() {
+      print_df <-
+        self$tasks_as_df() |>
+        print(row.names = FALSE) |>
+        capture.output() |>
+        {\(df_text) gsub("^", "    ", df_text)}() |>
+        paste0(collapse = "\n")
+
+
+      cat("ConnectDAG: \n")
+      cat("  Name:", self$name, "\n")
+      cat("  Is Valid:", self$is_valid, "\n")
+      cat("  Pin Name:", self$pin_name, "\n")
+      cat("  Tasks:", length(self$tasks), "\n")
+      cat(print_df)
+    },
+
     #' @description Adds a ConnectTask to this DAG
     #' @param task a ConnectTask R6 environment
     add_task = function(task) {

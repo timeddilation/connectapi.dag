@@ -56,6 +56,8 @@ ConnectTask <- R6::R6Class(
     connect_variant = NA,
     #' @field connect_rendering A VariantRender R6 env generated from connectapi::variant_render()
     connect_rendering = NA,
+    #' @field app_mode The type of content being rendered on Posit Connect
+    app_mode = NA_character_,
 
     #' @description Initializes a new ConnectTask
     #' @param guid A scalar character of the guid for the content deployed to Posit Connect
@@ -80,12 +82,12 @@ ConnectTask <- R6::R6Class(
         ))
       )
 
-      task_app_mode <- self$content$app_mode
+      self$app_mode <- self$content$app_mode
       known_valid_app_modes <- c("jupyter-static", "rmd-static", "quarto-static")
 
-      if (!task_app_mode %in% known_valid_app_modes) {
+      if (!self$app_mode %in% known_valid_app_modes) {
         warning(paste0(
-          "This content's app_mode `", task_app_mode, "` ",
+          "This content's app_mode `", self$app_mode, "` ",
           "is not in the known list of apps that can be rendered. ",
           "You may not be able to run this task. ",
           "If this warning is being raised in a valid scenario, ",
@@ -96,6 +98,18 @@ ConnectTask <- R6::R6Class(
 
       self$name <-
         self$connect_content_item$content$title
+    },
+
+    #' @description Displays summary of environment in console.
+    print = function() {
+      cat("ConnectTask: \n")
+      cat("  GUID:", self$guid, "\n")
+      cat("  Name:", self$name, "\n")
+      cat("  Trigger Rule:", self$trigger_rule, "\n")
+      cat("  App Mode:", self$app_mode, "\n")
+      cat("  Status:", self$status, "\n")
+      cat("  Upstream Tasks:", length(self$upstream_tasks), "\n")
+      cat("  Downstream Tasks:", length(self$downstream_tasks), "\n")
     },
 
     #' @description Resets the task to an initial state, read to be executed

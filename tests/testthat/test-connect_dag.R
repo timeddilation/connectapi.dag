@@ -6,6 +6,16 @@ test_that("dag intiializes with provided tasks", {
 
   expect_true(inherits(dag0, "ConnectDAG"))
   expect_equal(length(dag0$tasks), 2)
+  expect_output(
+    suppressMessages(print(dag0)),
+    regexp = paste0(
+      "^ConnectDAG.*",
+      "Name: .*",
+      "Is Valid: (TRUE|FALSE).*",
+      "Pin Name: .*",
+      "Tasks: [0-9]*.*"
+    )
+  )
 })
 
 test_that("dag initializes with only a name and no tasks", {

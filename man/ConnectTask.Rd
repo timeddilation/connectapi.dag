@@ -59,6 +59,8 @@ Other R6 classes:
 \item{\code{connect_variant}}{A TaskVariant R6 env generated from connectapi::get_variant_default()}
 
 \item{\code{connect_rendering}}{A VariantRender R6 env generated from connectapi::variant_render()}
+
+\item{\code{app_mode}}{The type of content being rendered on Posit Connect}
 }
 \if{html}{\out{</div>}}
 }
@@ -66,6 +68,7 @@ Other R6 classes:
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-ConnectTask-new}{\code{ConnectTask$new()}}
+\item \href{#method-ConnectTask-print}{\code{ConnectTask$print()}}
 \item \href{#method-ConnectTask-reset}{\code{ConnectTask$reset()}}
 \item \href{#method-ConnectTask-df_row}{\code{ConnectTask$df_row()}}
 \item \href{#method-ConnectTask-set_downstream}{\code{ConnectTask$set_downstream()}}
@@ -100,6 +103,16 @@ Initializes a new ConnectTask
 }
 \if{html}{\out{</div>}}
 }
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConnectTask-print"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectTask-print}{}}}
+\subsection{Method \code{print()}}{
+Displays summary of environment in console.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ConnectTask$print()}\if{html}{\out{</div>}}
+}
+
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConnectTask-reset"></a>}}

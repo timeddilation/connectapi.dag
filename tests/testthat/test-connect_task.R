@@ -1,5 +1,17 @@
 test_that("connect_task generates ConnectTask object", {
   expect_true(inherits(connect_task("foo", simulated = TRUE), "ConnectTask"))
+
+  expect_output(
+    print(connect_task("foo", simulated = TRUE)),
+    regexp = paste0(
+      "^ConnectTask.*", "GUID: .*foo.*", "Name: foo.*",
+      "Trigger Rule: all_success.*",
+      "App Mode: simulation.*",
+      "Status: Pending.*",
+      "Upstream Tasks: [0-9]*.*",
+      "Downstream Tasks: [0-9]*.*"
+    )
+  )
 })
 
 test_that("only valid trigger_rule can be supplied", {
