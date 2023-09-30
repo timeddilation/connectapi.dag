@@ -9,8 +9,16 @@ test_that("tasks execute with a valid DAG", {
 
   dag0 <- connect_dag(task0, task1, task2)
 
+  expect_true(is.na(dag0$run_id))
+  expect_true(is.na(dag0$run_start))
+  expect_true(is.na(dag0$run_end))
+  expect_false(dag0$is_complete)
+
   dag_run(dag0)
 
+  expect_true(inherits(dag0$run_id, "character"))
+  expect_true(inherits(dag0$run_start, "POSIXct"))
+  expect_true(inherits(dag0$run_end, "POSIXct"))
   expect_true(dag0$is_complete)
 
   dag0_task_statuses <-

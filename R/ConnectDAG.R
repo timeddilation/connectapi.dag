@@ -16,6 +16,7 @@
 #' Once validated, the DAG can orchestrate tasks in Posit Connect.
 #'
 #' @importFrom R6 R6Class
+#' @importFrom uuid UUIDgenerate
 #' @importFrom igraph V union
 #' @importFrom igraph topo_sort
 #' @importFrom igraph is.connected
@@ -39,6 +40,12 @@ ConnectDAG <- R6::R6Class(
     dag_graph = NA,
     #' @field is_valid Indicates if the tasks' dependency chain forms a proper DAG. DO NOT MODIFY DIRECTLY!
     is_valid = FALSE,
+    #' @field run_id A UUID created for an instance of a DAG run
+    run_id = NA,
+    #' @field run_start The time a DAG run started
+    run_start = NA,
+    #' @field run_end The time a DAG run ended
+    run_end = NA,
     #' @field is_complete Indicates if all tasks in this DAG have been evaluated for execution.
     is_complete = FALSE,
 
@@ -167,20 +174,26 @@ ConnectDAG <- R6::R6Class(
     #' @description Executes all tasks, in order, that are added to this DAG
     #' @param verbose Should it print messages as it executes tasks?
     execute = function(verbose = FALSE) {
-      # check if this instance already attempted to execute
+      # Preflight checks
+      ## check if this instance already attempted to execute
       if (self$is_complete) {
         stop("DAG has already been run, cannot run again.")
       }
-      # check if is a valid dag
+      ## check if is a valid dag
       private$validate_dag()
       if (!self$is_valid) {
         stop("Not a valid DAG. Cannot execute tasks.")
       }
 
+      # Execution Logic
+      self$run_id <- uuid::UUIDgenerate()
+      self$run_start <- Sys.time()
+
       for (task in private$task_exec_order()) {
         private$run_dag_task(task, verbose)
       }
 
+      self$run_end <- Sys.time()
       self$is_complete <- TRUE
       if (verbose) print(self$tasks_as_df())
 
@@ -194,6 +207,9 @@ ConnectDAG <- R6::R6Class(
       }
 
       self$is_complete <- FALSE
+      self$run_start <- NA
+      self$run_end <- NA
+      self$run_id <- NA_character_
 
       invisible(self)
     },

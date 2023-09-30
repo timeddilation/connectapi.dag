@@ -44,6 +44,12 @@ Other R6 classes:
 
 \item{\code{is_valid}}{Indicates if the tasks' dependency chain forms a proper DAG. DO NOT MODIFY DIRECTLY!}
 
+\item{\code{run_id}}{A UUID created for an instance of a DAG run}
+
+\item{\code{run_start}}{The time a DAG run started}
+
+\item{\code{run_end}}{The time a DAG run ended}
+
 \item{\code{is_complete}}{Indicates if all tasks in this DAG have been evaluated for execution.}
 }
 \if{html}{\out{</div>}}

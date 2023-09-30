@@ -24,6 +24,9 @@ test_that("all tasks reset to pending and envs are cleared, and is_complete is F
   # actual test of reset functionality
   dag_reset(dag0)
   ## DAG is flagged as incomplete
+  expect_true(is.na(dag0$run_id))
+  expect_true(is.na(dag0$run_start))
+  expect_true(is.na(dag0$run_end))
   expect_false(dag0$is_complete)
 
   ## tasks are all in Pending Status
