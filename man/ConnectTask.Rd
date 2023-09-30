@@ -73,10 +73,9 @@ Other R6 classes:
 \item \href{#method-ConnectTask-link_task}{\code{ConnectTask$link_task()}}
 \item \href{#method-ConnectTask-update_task_graph}{\code{ConnectTask$update_task_graph()}}
 \item \href{#method-ConnectTask-plot}{\code{ConnectTask$plot()}}
-\item \href{#method-ConnectTask-linked_task_names}{\code{ConnectTask$linked_task_names()}}
+\item \href{#method-ConnectTask-linked_tasks_attrs}{\code{ConnectTask$linked_tasks_attrs()}}
 \item \href{#method-ConnectTask-execute_task}{\code{ConnectTask$execute_task()}}
 \item \href{#method-ConnectTask-poll_task}{\code{ConnectTask$poll_task()}}
-\item \href{#method-ConnectTask-upstream_task_statuses}{\code{ConnectTask$upstream_task_statuses()}}
 \item \href{#method-ConnectTask-can_run}{\code{ConnectTask$can_run()}}
 \item \href{#method-ConnectTask-clone}{\code{ConnectTask$clone()}}
 }
@@ -197,14 +196,14 @@ Visualizes this task's `task_graph`
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ConnectTask-linked_task_names"></a>}}
-\if{latex}{\out{\hypertarget{method-ConnectTask-linked_task_names}{}}}
-\subsection{Method \code{linked_task_names()}}{
-Returns a character vector of the linked task names.
-Will be removed eventually, and instead `linked_task_guids` should be used
+\if{html}{\out{<a id="method-ConnectTask-linked_tasks_attrs"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectTask-linked_tasks_attrs}{}}}
+\subsection{Method \code{linked_tasks_attrs()}}{
+Returns a list of the linked tasks' attributes
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConnectTask$linked_task_names(
-  link = c("both", "upstream_tasks", "downstream_tasks")
+\if{html}{\out{<div class="r">}}\preformatted{ConnectTask$linked_tasks_attrs(
+  link = c("both", "upstream_tasks", "downstream_tasks"),
+  task_attr = c("task_guid", "task_name", "task_status")
 )}\if{html}{\out{</div>}}
 }
 
@@ -212,6 +211,8 @@ Will be removed eventually, and instead `linked_task_guids` should be used
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{link}}{They type of link to use to search for tasks}
+
+\item{\code{task_attr}}{The name of the attribute to return}
 }
 \if{html}{\out{</div>}}
 }
@@ -249,16 +250,6 @@ A wrapper around connectapi::poll_task for this task's execution
 }
 \if{html}{\out{</div>}}
 }
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ConnectTask-upstream_task_statuses"></a>}}
-\if{latex}{\out{\hypertarget{method-ConnectTask-upstream_task_statuses}{}}}
-\subsection{Method \code{upstream_task_statuses()}}{
-Returns a character vector of upstream tasks' statuses.
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConnectTask$upstream_task_statuses()}\if{html}{\out{</div>}}
-}
-
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConnectTask-can_run"></a>}}

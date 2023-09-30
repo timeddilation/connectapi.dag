@@ -26,6 +26,7 @@
 #' @importFrom connectapi poll_task
 #' @importFrom igraph graph_from_data_frame
 #' @importFrom igraph layout_as_tree
+#' @importFrom purrr pluck
 #'
 #' @family R6 classes
 #' @export
@@ -145,12 +146,12 @@ ConnectTask <- R6::R6Class(
       stopifnot(inherits(task, "ConnectTask"))
       link <- match.arg(link)
 
-      if (task$task_name %in% self$linked_task_names()) {
+      if (task$task_guid %in% self$linked_tasks_attrs("both", "task_guid")) {
         # Task already linked, cannot link task again
         return(invisible(NULL))
       }
 
-      if (task$task_name == self$task_name) {
+      if (task$task_guid == self$task_guid) {
         warning("Cannot reference self as an upstream or downstream task.")
         return(invisible(NULL))
       }
@@ -168,22 +169,27 @@ ConnectTask <- R6::R6Class(
 
     #' @description Re-generates this task's `task_graph` after a task is linked
     update_task_graph = function() {
-      downstream_task_names <- self$linked_task_names("downstream_tasks")
-      upstream_task_names <- self$linked_task_names("upstream_tasks")
+      downstream_task_guids <-
+        self$linked_tasks_attrs("downstream_tasks", "task_guid") |>
+        unlist()
 
       downstream_tasks_df <-
-        if(!is.null(downstream_task_names)) {
+        if(!is.null(downstream_task_guids)) {
           data.frame(
-            source = self$task_name,
-            target = downstream_task_names
+            source = self$task_guid,
+            target = downstream_task_guids
           )
         } else NULL
 
+      upstream_task_guids <-
+        self$linked_tasks_attrs("upstream_tasks", "task_guid") |>
+        unlist()
+
       upstream_tasks_df <-
-        if(!is.null(upstream_task_names)) {
+        if(!is.null(upstream_task_guids)) {
           data.frame(
-            source = upstream_task_names,
-            target = self$task_name
+            source = upstream_task_guids,
+            target = self$task_guid
           )
         } else NULL
 
@@ -202,26 +208,27 @@ ConnectTask <- R6::R6Class(
       }
     },
 
-    #' @description
-        #' Returns a character vector of the linked task names.
-        #' Will be removed eventually, and instead `linked_task_guids` should be used
+    #' @description Returns a list of the linked tasks' attributes
     #' @param link They type of link to use to search for tasks
-    linked_task_names = function(link = c("both", "upstream_tasks", "downstream_tasks")) {
+    #' @param task_attr The name of the attribute to return
+    linked_tasks_attrs = function(
+      link = c("both", "upstream_tasks", "downstream_tasks"),
+      task_attr = c("task_guid", "task_name", "task_status")
+    ) {
       link <- match.arg(link)
+      task_attr <- match.arg(task_attr)
 
       if (link == "both") {
-        task_names <- c(
-          self$linked_task_names("upstream_tasks"),
-          self$linked_task_names("downstream_tasks")
+        task_attrs <- c(
+          self$linked_tasks_attrs("upstream_tasks", task_attr),
+          self$linked_tasks_attrs("downstream_tasks", task_attr)
         )
       } else {
-        # No idea why neither `vapply` nor `sapply` work here???
-        task_names <-
-          lapply(get(link, envir = self), {\(task) task$task_name}) |>
-          unlist()
+        task_attrs <-
+          lapply(get(link, envir = self), {\(task) purrr::pluck(task, task_attr)})
       }
 
-      return(task_names)
+      return(task_attrs)
     },
 
     #' @description Executes a ConnectTask on a remote Connect Server
@@ -274,28 +281,27 @@ ConnectTask <- R6::R6Class(
       invisible(self)
     },
 
-    #' @description Returns a character vector of upstream tasks' statuses.
-    upstream_task_statuses = function() {
-      vapply(self$upstream_tasks, {\(task) task$task_status}, character(1))
-    },
-
     #' @description Returns a logical indicating if this task can run based on the `trigger_rule`
     can_run = function() {
       if (length(self$upstream_tasks) == 0) return(TRUE)
       terminal_statuses <- c("Succeeded", "Failed", "Skipped")
 
+      upstream_statuses <-
+        self$linked_tasks_attrs("upstream_tasks", "task_status") |>
+        unlist()
+
       switch (self$trigger_rule,
-        all_success = all(self$upstream_task_statuses() == "Succeeded"),
-        all_failed = all(self$upstream_task_statuses() == "Failed"),
-        all_done = all(self$upstream_task_statuses() %in% terminal_statuses),
-        all_skipped = all(self$upstream_task_statuses() == "Skipped"),
+        all_success = all(upstream_statuses == "Succeeded"),
+        all_failed = all(upstream_statuses == "Failed"),
+        all_done = all(upstream_statuses %in% terminal_statuses),
+        all_skipped = all(upstream_statuses == "Skipped"),
 
-        one_success = any(self$upstream_task_statuses() == "Succeeded"),
-        one_failed = any(self$upstream_task_statuses() == "Failed"),
-        one_done = any(self$upstream_task_statuses() %in% terminal_statuses),
+        one_success = any(upstream_statuses == "Succeeded"),
+        one_failed = any(upstream_statuses == "Failed"),
+        one_done = any(upstream_statuses %in% terminal_statuses),
 
-        none_failed = all(self$upstream_task_statuses() %in% c("Succeeded", "Skipped")),
-        none_skipped = all(self$upstream_task_statuses() %in% c("Succeeded", "Failed")),
+        none_failed = all(upstream_statuses %in% c("Succeeded", "Skipped")),
+        none_skipped = all(upstream_statuses %in% c("Succeeded", "Failed")),
         always = TRUE
       )
     }

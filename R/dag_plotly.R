@@ -37,11 +37,12 @@ dag_plotly <- function(connect_dag) {
     dag_graph |>
     igraph::as_data_frame(what = "vertices") |>
     cbind(igraph::layout_as_tree(dag_graph)) |>
-    stats::setNames(c("task_name", "posx", "posy")) |>
-    merge(tasks_df, by = "task_name")
+    stats::setNames(c("task_guid", "posx", "posy")) |>
+    merge(tasks_df, by = "task_guid")
 
   plot_nodes_df$plotly_text <- paste0(
-    "Task: ", plot_nodes_df$task_name, "<br>",
+    "GUID: ", plot_nodes_df$task_guid, "<br>",
+    "Title: ", plot_nodes_df$task_name, "<br>",
     "Status: ", plot_nodes_df$task_status, "<br>",
     "Trigger Rule: ", plot_nodes_df$trigger_rule
   )
@@ -49,8 +50,8 @@ dag_plotly <- function(connect_dag) {
   plot_edges_df <-
     dag_graph |>
     igraph::as_data_frame(what = "edges") |>
-    merge(plot_nodes_df[, c("task_name", "posx", "posy")], by.x = "from", by.y = "task_name") |>
-    merge(plot_nodes_df[, c("task_name", "posx", "posy")], by.x = "to", by.y = "task_name") |>
+    merge(plot_nodes_df[, c("task_guid", "posx", "posy")], by.x = "from", by.y = "task_guid") |>
+    merge(plot_nodes_df[, c("task_guid", "posx", "posy")], by.x = "to", by.y = "task_guid") |>
     stats::setNames(c("to", "from", "from_x", "from_y", "to_x", "to_y"))
 
   pp <- plotly::plot_ly(plot_nodes_df, type = 'scatter', mode = 'markers') |>

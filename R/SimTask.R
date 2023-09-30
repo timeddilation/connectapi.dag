@@ -45,7 +45,7 @@ SimTask <- R6::R6Class(
 
       trigger_rule <- match.arg(trigger_rule, trigger_options)
 
-      self$task_guid <- guid
+      self$task_guid <- paste0("simulated_", guid)
       self$task_name <- guid
       self$task_status <- "Pending"
       self$trigger_rule <- trigger_rule

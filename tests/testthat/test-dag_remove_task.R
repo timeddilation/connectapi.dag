@@ -8,8 +8,8 @@ test_that("specified task is removed", {
 
   expect_length(dag0$dag_tasks, 2)
 
-  task_ids <- dag0$task_guids()
-  expect_true(all(task_ids %in% c("task0", "task2")))
+  task_names <- dag0$task_attrs("task_name")
+  expect_true(all(task_names %in% c("task0", "task2")))
 })
 
 test_that("attempt to remove a task not added raises warning", {

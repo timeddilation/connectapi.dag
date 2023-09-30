@@ -17,7 +17,9 @@
 #'
 #' @importFrom R6 R6Class
 #' @importFrom uuid UUIDgenerate
-#' @importFrom igraph V union
+#' @importFrom purrr pluck
+#' @importFrom igraph V
+#' @importFrom igraph union
 #' @importFrom igraph topo_sort
 #' @importFrom igraph is.connected
 #' @importFrom igraph is.dag
@@ -62,7 +64,7 @@ ConnectDAG <- R6::R6Class(
     add_task = function(task) {
       stopifnot(inherits(task, "ConnectTask"))
 
-      if (!task$task_guid %in% self$task_guids()) {
+      if (!task$task_guid %in% self$task_attrs("task_guid")) {
         self$dag_tasks <- append(self$dag_tasks, task)
       }
 
@@ -77,7 +79,7 @@ ConnectDAG <- R6::R6Class(
       task_id <- task$task_guid
 
       task_idx <-
-        self$task_guids() |>
+        self$task_attrs("task_guid") |>
         {\(task_ids) task_ids == task_id}() |>
         which()
 
@@ -135,9 +137,11 @@ ConnectDAG <- R6::R6Class(
         return(invisible(NULL))
     },
 
-    #' @description Returns a character vector of all added ConnectTasks' GUIDs
-    task_guids = function() {
-      vapply(self$dag_tasks, {\(task) task$task_guid}, character(1))
+    #' @description Returns a character vector of DAG tasks' specified attribute
+    #' @param task_attr The name of the character attribute to return
+    task_attrs = function(task_attr = c("task_guid", "task_name", "task_status")) {
+      task_attr <- match.arg(task_attr)
+      vapply(self$dag_tasks, {\(task) purrr::pluck(task, task_attr)}, character(1))
     },
 
     #' @description Returns a data.frame of all tasks added to this DAG
@@ -158,9 +162,9 @@ ConnectDAG <- R6::R6Class(
           do.call(rbind, lapply(self$dag_tasks, {\(task) task$df_row()}))
 
         if (self$is_valid) {
-          ordered_tasks <- data.frame(task_name = private$task_exec_order())
+          ordered_tasks <- data.frame(task_guid = private$task_exec_order())
           ordered_tasks$exec_order <- ordered_tasks |> row.names() |> as.integer()
-          tasks_df <- merge(tasks_df, ordered_tasks, by = "task_name")
+          tasks_df <- merge(tasks_df, ordered_tasks, by = "task_guid")
           tasks_df <- tasks_df[order(tasks_df$exec_order),]
         } else {
           tasks_df$exec_order <- NA_integer_
@@ -274,27 +278,26 @@ ConnectDAG <- R6::R6Class(
       }
 
       ### Validation Step 2-3
-      task_list_names <-
-        vapply(self$dag_tasks, {\(task) task$task_name}, character(1))
-      task_node_names <- names(igraph::V(self$dag_graph))
+      task_list_guids <- self$task_attrs("task_guid")
+      task_node_guids <- names(igraph::V(self$dag_graph))
 
       # check if all nodes in the graph have a task in the dag task list
-      missing_tasks <- any(!task_node_names %in% task_list_names)
+      missing_tasks <- any(!task_node_guids %in% task_list_guids)
       if (missing_tasks) {
         warning(paste(
           "A task is linked as either upstream or downstream of a provided task,",
           "but was not added explictely to the DAG: ",
-          paste0(task_node_names[!task_node_names %in% task_list_names], collapse = ", ")
+          paste0(task_node_guids[!task_node_guids %in% task_list_guids], collapse = ", ")
         ))
       }
 
       # check if all tasks in the dag task list appear as nodes in the graph
-      unlinked_tasks <- any(!task_list_names %in% task_node_names)
+      unlinked_tasks <- any(!task_list_guids %in% task_node_guids)
       if (unlinked_tasks) {
         warning(paste(
           "A task is added to the DAG,",
           "but not set as upstream or downstream of other tasks: ",
-          paste0(task_list_names[!task_list_names %in% task_node_names], collapse = ", ")
+          paste0(task_list_guids[!task_list_guids %in% task_node_guids], collapse = ", ")
         ))
       }
 
@@ -330,8 +333,8 @@ ConnectDAG <- R6::R6Class(
 
 
     # Runs a DAG task
-    run_dag_task = function(task_name, verbose = FALSE) {
-      dag_task <- which(lapply(self$dag_tasks, {\(task) task$task_name}) == task_name)
+    run_dag_task = function(task_guid, verbose = FALSE) {
+      dag_task <- which(self$task_attrs("task_guid") == task_guid)
       task_run(self$dag_tasks[[dag_task]], verbose)
     }
   )

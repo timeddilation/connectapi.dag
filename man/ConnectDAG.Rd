@@ -63,7 +63,7 @@ Other R6 classes:
 \item \href{#method-ConnectDAG-set_name}{\code{ConnectDAG$set_name()}}
 \item \href{#method-ConnectDAG-set_connect_pin_name}{\code{ConnectDAG$set_connect_pin_name()}}
 \item \href{#method-ConnectDAG-plot}{\code{ConnectDAG$plot()}}
-\item \href{#method-ConnectDAG-task_guids}{\code{ConnectDAG$task_guids()}}
+\item \href{#method-ConnectDAG-task_attrs}{\code{ConnectDAG$task_attrs()}}
 \item \href{#method-ConnectDAG-tasks_as_df}{\code{ConnectDAG$tasks_as_df()}}
 \item \href{#method-ConnectDAG-execute}{\code{ConnectDAG$execute()}}
 \item \href{#method-ConnectDAG-reset}{\code{ConnectDAG$reset()}}
@@ -169,14 +169,21 @@ Prints a plotly graph of the DAG's graph
 
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ConnectDAG-task_guids"></a>}}
-\if{latex}{\out{\hypertarget{method-ConnectDAG-task_guids}{}}}
-\subsection{Method \code{task_guids()}}{
-Returns a character vector of all added ConnectTasks' GUIDs
+\if{html}{\out{<a id="method-ConnectDAG-task_attrs"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectDAG-task_attrs}{}}}
+\subsection{Method \code{task_attrs()}}{
+Returns a character vector of DAG tasks' specified attribute
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$task_guids()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$task_attrs(task_attr = c("task_guid", "task_name", "task_status"))}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{task_attr}}{The name of the character attribute to return}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConnectDAG-tasks_as_df"></a>}}

@@ -16,12 +16,12 @@ Imports:
   connectapi,
   pins (>= 1.1.0),
   glue,
+  purrr,
   readr,
   plotly,
   stats,
   uuid
 RoxygenNote: 7.2.3
 Suggests: 
-    testthat (>= 3.0.0),
-    purrr (>= 1.0.1)
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
