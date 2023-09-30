@@ -38,7 +38,7 @@ Other R6 classes:
 
 \item{\code{pin_name}}{The name of pin on Connect where this DAG is saved.}
 
-\item{\code{dag_tasks}}{A list of ConnectTasks this DAG is orchestrating.}
+\item{\code{tasks}}{A list of ConnectTasks this DAG is orchestrating.}
 
 \item{\code{dag_graph}}{An igraph object of all linked tasks in this DAG}
 
@@ -174,7 +174,7 @@ Prints a plotly graph of the DAG's graph
 \subsection{Method \code{task_attrs()}}{
 Returns a character vector of DAG tasks' specified attribute
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$task_attrs(task_attr = c("task_guid", "task_name", "task_status"))}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$task_attrs(task_attr = c("guid", "name", "status"))}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

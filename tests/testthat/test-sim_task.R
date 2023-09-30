@@ -19,21 +19,21 @@ test_that("fail_prob = 0 always succeeds", {
   sim_task0 <- sim_task("foo", fail_prob = 0)
   task_run(sim_task0)
 
-  expect_equal(sim_task0$task_status, "Succeeded")
+  expect_equal(sim_task0$status, "Succeeded")
 })
 
 test_that("fail_prob = 1 always fails", {
   sim_task0 <- sim_task("foo", fail_prob = 1)
   task_run(sim_task0)
 
-  expect_equal(sim_task0$task_status, "Failed")
+  expect_equal(sim_task0$status, "Failed")
 })
 
 test_that("fail_prob between 0 and 1 will always either succeed or fail", {
   sim_task0 <- sim_task("foo", fail_prob = 0.5)
   task_run(sim_task0)
 
-  expect_true(sim_task0$task_status %in% c("Succeeded", "Failed"))
+  expect_true(sim_task0$status %in% c("Succeeded", "Failed"))
 })
 
 test_that("non-verbose task execution does not print message", {

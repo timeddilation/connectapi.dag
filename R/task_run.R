@@ -13,5 +13,5 @@
 
 task_run <- function(env, verbose = FALSE) {
   stopifnot(inherits(env, "ConnectTask"), is.logical(verbose))
-  env$execute_task(verbose)
+  env$execute(verbose)
 }

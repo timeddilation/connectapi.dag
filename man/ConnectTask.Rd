@@ -16,7 +16,7 @@ task <- ConnectTask$new(
   trigger_rule = "always",
   connect_server = connectapi::connect()
 )
-task$execute_task()
+task$execute()
 }
 }
 
@@ -38,19 +38,11 @@ Other R6 classes:
 \section{Public fields}{
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
-\item{\code{task_guid}}{The guid of the content item published to Connect}
+\item{\code{guid}}{The guid of the content item published to Connect}
 
-\item{\code{connect_server}}{An Connect R6 env generated from connectapi::connect()}
+\item{\code{name}}{The name of the ContentItem on Connect}
 
-\item{\code{task_content_item}}{A ContentItem R6 env generated from connectapi::content_item()}
-
-\item{\code{task_variant}}{A TaskVariant R6 env generated from connectapi::get_variant_default()}
-
-\item{\code{task_rendering}}{A VariantRender R6 env generated from connectapi::variant_render()}
-
-\item{\code{task_name}}{The name of the ContentItem on Connect}
-
-\item{\code{task_status}}{The status of this task. Possible statuses: Pending, Succeeded, Failed, Skipped}
+\item{\code{status}}{The status of this task. Possible statuses: Pending, Succeeded, Failed, Skipped}
 
 \item{\code{trigger_rule}}{The rule for when to run this task. See \link[connectapi.dag]{connect_task} for details}
 
@@ -59,6 +51,14 @@ Other R6 classes:
 \item{\code{downstream_tasks}}{A list of ConnectTask R6 envs that are dependents of this task}
 
 \item{\code{task_graph}}{An igraph object of this task, and its immediate upstream and downstream tasks}
+
+\item{\code{connect_server}}{An Connect R6 env generated from connectapi::connect()}
+
+\item{\code{connect_content_item}}{A ContentItem R6 env generated from connectapi::content_item()}
+
+\item{\code{connect_variant}}{A TaskVariant R6 env generated from connectapi::get_variant_default()}
+
+\item{\code{connect_rendering}}{A VariantRender R6 env generated from connectapi::variant_render()}
 }
 \if{html}{\out{</div>}}
 }
@@ -74,7 +74,7 @@ Other R6 classes:
 \item \href{#method-ConnectTask-update_task_graph}{\code{ConnectTask$update_task_graph()}}
 \item \href{#method-ConnectTask-plot}{\code{ConnectTask$plot()}}
 \item \href{#method-ConnectTask-linked_tasks_attrs}{\code{ConnectTask$linked_tasks_attrs()}}
-\item \href{#method-ConnectTask-execute_task}{\code{ConnectTask$execute_task()}}
+\item \href{#method-ConnectTask-execute}{\code{ConnectTask$execute()}}
 \item \href{#method-ConnectTask-poll_task}{\code{ConnectTask$poll_task()}}
 \item \href{#method-ConnectTask-can_run}{\code{ConnectTask$can_run()}}
 \item \href{#method-ConnectTask-clone}{\code{ConnectTask$clone()}}
@@ -160,7 +160,9 @@ Sets dependency tasks on this task
 \if{html}{\out{<a id="method-ConnectTask-link_task"></a>}}
 \if{latex}{\out{\hypertarget{method-ConnectTask-link_task}{}}}
 \subsection{Method \code{link_task()}}{
-Adds a single ConnectTask link either upstream or downstream
+Adds a single ConnectTask link either upstream or downstream.
+Should not be used directly.
+Called internally by the set_upstream and set_downstream methods.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ConnectTask$link_task(task, link = c("upstream_tasks", "downstream_tasks"))}\if{html}{\out{</div>}}
 }
@@ -203,7 +205,7 @@ Returns a list of the linked tasks' attributes
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{ConnectTask$linked_tasks_attrs(
   link = c("both", "upstream_tasks", "downstream_tasks"),
-  task_attr = c("task_guid", "task_name", "task_status")
+  task_attr = c("guid", "name", "status")
 )}\if{html}{\out{</div>}}
 }
 
@@ -218,12 +220,12 @@ Returns a list of the linked tasks' attributes
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ConnectTask-execute_task"></a>}}
-\if{latex}{\out{\hypertarget{method-ConnectTask-execute_task}{}}}
-\subsection{Method \code{execute_task()}}{
+\if{html}{\out{<a id="method-ConnectTask-execute"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectTask-execute}{}}}
+\subsection{Method \code{execute()}}{
 Executes a ConnectTask on a remote Connect Server
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConnectTask$execute_task(verbose = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConnectTask$execute(verbose = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

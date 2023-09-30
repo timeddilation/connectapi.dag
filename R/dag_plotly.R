@@ -37,29 +37,29 @@ dag_plotly <- function(connect_dag) {
     dag_graph |>
     igraph::as_data_frame(what = "vertices") |>
     cbind(igraph::layout_as_tree(dag_graph)) |>
-    stats::setNames(c("task_guid", "posx", "posy")) |>
-    merge(tasks_df, by = "task_guid")
+    stats::setNames(c("guid", "posx", "posy")) |>
+    merge(tasks_df, by = "guid")
 
   plot_nodes_df$plotly_text <- paste0(
-    "GUID: ", plot_nodes_df$task_guid, "<br>",
-    "Title: ", plot_nodes_df$task_name, "<br>",
-    "Status: ", plot_nodes_df$task_status, "<br>",
+    "GUID: ", plot_nodes_df$guid, "<br>",
+    "Title: ", plot_nodes_df$name, "<br>",
+    "Status: ", plot_nodes_df$status, "<br>",
     "Trigger Rule: ", plot_nodes_df$trigger_rule
   )
 
   plot_edges_df <-
     dag_graph |>
     igraph::as_data_frame(what = "edges") |>
-    merge(plot_nodes_df[, c("task_guid", "posx", "posy")], by.x = "from", by.y = "task_guid") |>
-    merge(plot_nodes_df[, c("task_guid", "posx", "posy")], by.x = "to", by.y = "task_guid") |>
+    merge(plot_nodes_df[, c("guid", "posx", "posy")], by.x = "from", by.y = "guid") |>
+    merge(plot_nodes_df[, c("guid", "posx", "posy")], by.x = "to", by.y = "guid") |>
     stats::setNames(c("to", "from", "from_x", "from_y", "to_x", "to_y"))
 
   pp <- plotly::plot_ly(plot_nodes_df, type = 'scatter', mode = 'markers') |>
     plotly::add_trace(
-      data = plot_nodes_df[plot_nodes_df$task_status == "Pending",],
+      data = plot_nodes_df[plot_nodes_df$status == "Pending",],
       x = ~posx,
       y = ~posy,
-      color = ~task_status,
+      color = ~status,
       text = ~plotly_text,
       hoverinfo = "text",
       marker = list(
@@ -68,10 +68,10 @@ dag_plotly <- function(connect_dag) {
       )
     ) |>
     plotly::add_trace(
-      data = plot_nodes_df[plot_nodes_df$task_status == "Succeeded",],
+      data = plot_nodes_df[plot_nodes_df$status == "Succeeded",],
       x = ~posx,
       y = ~posy,
-      color = ~task_status,
+      color = ~status,
       text = ~plotly_text,
       hoverinfo = "text",
       marker = list(
@@ -80,10 +80,10 @@ dag_plotly <- function(connect_dag) {
       )
     ) |>
     plotly::add_trace(
-      data = plot_nodes_df[plot_nodes_df$task_status == "Failed",],
+      data = plot_nodes_df[plot_nodes_df$status == "Failed",],
       x = ~posx,
       y = ~posy,
-      color = ~task_status,
+      color = ~status,
       text = ~plotly_text,
       hoverinfo = "text",
       marker = list(
@@ -92,10 +92,10 @@ dag_plotly <- function(connect_dag) {
       )
     ) |>
     plotly::add_trace(
-      data = plot_nodes_df[plot_nodes_df$task_status == "Skipped",],
+      data = plot_nodes_df[plot_nodes_df$status == "Skipped",],
       x = ~posx,
       y = ~posy,
-      color = ~task_status,
+      color = ~status,
       text = ~plotly_text,
       hoverinfo = "text",
       marker = list(
@@ -103,7 +103,7 @@ dag_plotly <- function(connect_dag) {
         color = "#B5B091"
       )
     ) |>
-    plotly::add_text(~posx, ~posy, text = ~task_name, showlegend = FALSE, data = plot_nodes_df) |>
+    plotly::add_text(~posx, ~posy, text = ~name, showlegend = FALSE, data = plot_nodes_df) |>
     plotly::add_annotations(
       data = plot_edges_df,
       x = ~to_x,

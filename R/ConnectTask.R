@@ -9,7 +9,7 @@
 #'   trigger_rule = "always",
 #'   connect_server = connectapi::connect()
 #' )
-#' task$execute_task()
+#' task$execute()
 #' }
 #'
 #' @section Details:
@@ -34,20 +34,12 @@
 ConnectTask <- R6::R6Class(
   "ConnectTask",
   public = list(
-    #' @field task_guid The guid of the content item published to Connect
-    task_guid = NA_character_,
-    #' @field connect_server An Connect R6 env generated from connectapi::connect()
-    connect_server = NA,
-    #' @field task_content_item A ContentItem R6 env generated from connectapi::content_item()
-    task_content_item = NA,
-    #' @field task_variant A TaskVariant R6 env generated from connectapi::get_variant_default()
-    task_variant = NA,
-    #' @field task_rendering A VariantRender R6 env generated from connectapi::variant_render()
-    task_rendering = NA,
-    #' @field task_name The name of the ContentItem on Connect
-    task_name = NA_character_,
-    #' @field task_status The status of this task. Possible statuses: Pending, Succeeded, Failed, Skipped
-    task_status = NA_character_,
+    #' @field guid The guid of the content item published to Connect
+    guid = NA_character_,
+    #' @field name The name of the ContentItem on Connect
+    name = NA_character_,
+    #' @field status The status of this task. Possible statuses: Pending, Succeeded, Failed, Skipped
+    status = NA_character_,
     #' @field trigger_rule The rule for when to run this task. See \link[connectapi.dag]{connect_task} for details
     trigger_rule = NA_character_,
     #' @field upstream_tasks A list of ConnectTask R6 envs that are dependencies for this task
@@ -56,6 +48,14 @@ ConnectTask <- R6::R6Class(
     downstream_tasks = list(),
     #' @field task_graph An igraph object of this task, and its immediate upstream and downstream tasks
     task_graph = NULL,
+    #' @field connect_server An Connect R6 env generated from connectapi::connect()
+    connect_server = NA,
+    #' @field connect_content_item A ContentItem R6 env generated from connectapi::content_item()
+    connect_content_item = NA,
+    #' @field connect_variant A TaskVariant R6 env generated from connectapi::get_variant_default()
+    connect_variant = NA,
+    #' @field connect_rendering A VariantRender R6 env generated from connectapi::variant_render()
+    connect_rendering = NA,
 
     #' @description Initializes a new ConnectTask
     #' @param guid A scalar character of the guid for the content deployed to Posit Connect
@@ -65,16 +65,16 @@ ConnectTask <- R6::R6Class(
       trigger_rule <- match.arg(trigger_rule, trigger_options)
       stopifnot(inherits(connect_server, "Connect"))
 
-      self$task_guid <- guid
-      self$task_status <- "Pending"
+      self$guid <- guid
+      self$status <- "Pending"
       self$trigger_rule <- trigger_rule
       self$connect_server <- connect_server
 
       tryCatch(
-        self$task_content_item <-
-          connectapi::content_item(self$connect_server, self$task_guid),
+        self$connect_content_item <-
+          connectapi::content_item(self$connect_server, self$guid),
         error = function(e) stop(paste(
-          "Could not locate a content with guid", self$task_guid,
+          "Could not locate a content with guid", self$guid,
           "on server", self$connect_server$server,
           "\n", e
         ))
@@ -94,15 +94,15 @@ ConnectTask <- R6::R6Class(
         ))
       }
 
-      self$task_name <-
-        self$task_content_item$content$title
+      self$name <-
+        self$connect_content_item$content$title
     },
 
     #' @description Resets the task to an initial state, read to be executed
     reset = function() {
-      self$task_status <- "Pending"
-      self$task_variant <- NA
-      self$task_rendering <- NA
+      self$status <- "Pending"
+      self$connect_variant <- NA
+      self$connect_rendering <- NA
 
       invisible(self)
     },
@@ -112,9 +112,9 @@ ConnectTask <- R6::R6Class(
         #' Used by the ConnectDAG to create a data.frame of all linked tasks.
     df_row = function() {
       data.frame(
-        task_name = self$task_name,
-        task_guid = self$task_guid,
-        task_status = self$task_status,
+        guid = self$guid,
+        name = self$name,
+        status = self$status,
         trigger_rule = self$trigger_rule
       )
     },
@@ -139,19 +139,22 @@ ConnectTask <- R6::R6Class(
       invisible(self)
     },
 
-    #' @description Adds a single ConnectTask link either upstream or downstream
+    #' @description
+        #' Adds a single ConnectTask link either upstream or downstream.
+        #' Should not be used directly.
+        #' Called internally by the set_upstream and set_downstream methods.
     #' @param task A ConnectTask R6 environment
     #' @param link The type of link to create
     link_task = function(task, link = c("upstream_tasks", "downstream_tasks")) {
       stopifnot(inherits(task, "ConnectTask"))
       link <- match.arg(link)
 
-      if (task$task_guid %in% self$linked_tasks_attrs("both", "task_guid")) {
+      if (task$guid %in% self$linked_tasks_attrs("both", "guid")) {
         # Task already linked, cannot link task again
         return(invisible(NULL))
       }
 
-      if (task$task_guid == self$task_guid) {
+      if (task$guid == self$guid) {
         warning("Cannot reference self as an upstream or downstream task.")
         return(invisible(NULL))
       }
@@ -170,26 +173,26 @@ ConnectTask <- R6::R6Class(
     #' @description Re-generates this task's `task_graph` after a task is linked
     update_task_graph = function() {
       downstream_task_guids <-
-        self$linked_tasks_attrs("downstream_tasks", "task_guid") |>
+        self$linked_tasks_attrs("downstream_tasks", "guid") |>
         unlist()
 
       downstream_tasks_df <-
         if(!is.null(downstream_task_guids)) {
           data.frame(
-            source = self$task_guid,
+            source = self$guid,
             target = downstream_task_guids
           )
         } else NULL
 
       upstream_task_guids <-
-        self$linked_tasks_attrs("upstream_tasks", "task_guid") |>
+        self$linked_tasks_attrs("upstream_tasks", "guid") |>
         unlist()
 
       upstream_tasks_df <-
         if(!is.null(upstream_task_guids)) {
           data.frame(
             source = upstream_task_guids,
-            target = self$task_guid
+            target = self$guid
           )
         } else NULL
 
@@ -213,7 +216,7 @@ ConnectTask <- R6::R6Class(
     #' @param task_attr The name of the attribute to return
     linked_tasks_attrs = function(
       link = c("both", "upstream_tasks", "downstream_tasks"),
-      task_attr = c("task_guid", "task_name", "task_status")
+      task_attr = c("guid", "name", "status")
     ) {
       link <- match.arg(link)
       task_attr <- match.arg(task_attr)
@@ -233,18 +236,18 @@ ConnectTask <- R6::R6Class(
 
     #' @description Executes a ConnectTask on a remote Connect Server
     #' @param verbose Should the task print messages as it executes?
-    execute_task = function(verbose = FALSE) {
-      if (verbose) message(paste("Starting task", self$task_name))
+    execute = function(verbose = FALSE) {
+      if (verbose) message(paste("Starting task", self$name))
 
       if (self$can_run()) {
-        self$task_variant <-
-          connectapi::get_variant_default(self$task_content_item) |>
+        self$connect_variant <-
+          connectapi::get_variant_default(self$connect_content_item) |>
           suppressWarnings()
 
         tryCatch(
-          self$task_rendering <- connectapi::variant_render(self$task_variant),
+          self$connect_rendering <- connectapi::variant_render(self$connect_variant),
           error = function(e) stop(paste(
-            self$task_guid,
+            self$guid,
             "is not a content item that can render.",
             "Make sure you do not specify an API, Application, or other content item without a render call.",
             e
@@ -253,7 +256,7 @@ ConnectTask <- R6::R6Class(
 
         self$poll_task(verbose)
       } else {
-        self$task_status <- "Skipped"
+        self$status <- "Skipped"
         if (verbose) message("Task Skipped")
       }
 
@@ -264,17 +267,17 @@ ConnectTask <- R6::R6Class(
     #' @param verbose Should the task print messages as it executes?
     poll_task = function(verbose = FALSE) {
       res <- tryCatch(
-        connectapi::poll_task(self$task_rendering),
+        connectapi::poll_task(self$connect_rendering),
         error = function(e) print(e)
       )
 
       task_successful <- !any(class(res) == "error")
 
       if (task_successful) {
-        self$task_status <- "Succeeded"
+        self$status <- "Succeeded"
         if (verbose) message("Task Succeeded")
       } else {
-        self$task_status <- "Failed"
+        self$status <- "Failed"
         if (verbose) message("Task Failed")
       }
 
@@ -287,7 +290,7 @@ ConnectTask <- R6::R6Class(
       terminal_statuses <- c("Succeeded", "Failed", "Skipped")
 
       upstream_statuses <-
-        self$linked_tasks_attrs("upstream_tasks", "task_status") |>
+        self$linked_tasks_attrs("upstream_tasks", "status") |>
         unlist()
 
       switch (self$trigger_rule,

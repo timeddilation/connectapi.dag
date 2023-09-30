@@ -12,7 +12,7 @@ Class simulating a ConnectTask
 
 \preformatted{
 sim_task <- SimTask$new("task0", "always", 0)
-sim_task$execute_task()
+sim_task$execute()
 }
 }
 
@@ -50,7 +50,7 @@ Other R6 classes:
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-SimTask-new}{\code{SimTask$new()}}
-\item \href{#method-SimTask-execute_task}{\code{SimTask$execute_task()}}
+\item \href{#method-SimTask-execute}{\code{SimTask$execute()}}
 \item \href{#method-SimTask-clone}{\code{SimTask$clone()}}
 }
 }
@@ -92,12 +92,12 @@ Initializes a new SimTask
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-SimTask-execute_task"></a>}}
-\if{latex}{\out{\hypertarget{method-SimTask-execute_task}{}}}
-\subsection{Method \code{execute_task()}}{
+\if{html}{\out{<a id="method-SimTask-execute"></a>}}
+\if{latex}{\out{\hypertarget{method-SimTask-execute}{}}}
+\subsection{Method \code{execute()}}{
 Simulates the execution of task, taking into account failure probability
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SimTask$execute_task(verbose = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SimTask$execute(verbose = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

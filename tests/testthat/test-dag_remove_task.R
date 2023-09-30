@@ -6,9 +6,9 @@ test_that("specified task is removed", {
   dag0 <- connect_dag(task0, task1, task2)
   dag_remove_task(dag0, task1)
 
-  expect_length(dag0$dag_tasks, 2)
+  expect_length(dag0$tasks, 2)
 
-  task_names <- dag0$task_attrs("task_name")
+  task_names <- dag0$task_attrs("name")
   expect_true(all(task_names %in% c("task0", "task2")))
 })
 
@@ -20,7 +20,7 @@ test_that("attempt to remove a task not added raises warning", {
   dag0 <- connect_dag(task0, task1)
 
   expect_warning(dag_remove_task(dag0, task2))
-  expect_length(dag0$dag_tasks, 2)
+  expect_length(dag0$tasks, 2)
 })
 
 test_that("only a ConnectDAG can be passed to env param", {

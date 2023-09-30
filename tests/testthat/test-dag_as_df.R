@@ -12,7 +12,7 @@ test_that("the expected df is returned", {
 
   expect_true(inherits(df, "data.frame"))
   expect_equal(nrow(df), 3)
-  expect_identical(names(df), c("task_guid", "task_name", "task_status", "trigger_rule", "exec_order"))
+  expect_identical(names(df), c("guid", "name", "status", "trigger_rule", "exec_order"))
   expect_true(all(is.integer(df[, "exec_order"])))
 })
 
@@ -22,7 +22,7 @@ test_that("an empty DAG has no rows", {
 
   expect_true(inherits(df, "data.frame"))
   expect_equal(nrow(df), 0)
-  expect_identical(names(df), c("task_name", "task_guid", "task_status", "trigger_rule", "exec_order"))
+  expect_identical(names(df), c("guid", "name", "status", "trigger_rule", "exec_order"))
 })
 
 test_that("an invalid DAG still shows df with no exec order", {
@@ -35,6 +35,6 @@ test_that("an invalid DAG still shows df with no exec order", {
 
   expect_true(inherits(df, "data.frame"))
   expect_equal(nrow(df), 3)
-  expect_identical(names(df), c("task_name", "task_guid", "task_status", "trigger_rule", "exec_order"))
+  expect_identical(names(df), c("guid", "name", "status", "trigger_rule", "exec_order"))
   expect_true(all(is.na(df[, "exec_order"])))
 })

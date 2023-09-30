@@ -14,7 +14,7 @@ test_that("tasks are added upstream", {
   task0 |> set_upstream(task1)
 
   expect_equal(length(task0$upstream_tasks), 1)
-  expect_equal(task0$upstream_tasks[[1]]$task_name, "task1")
+  expect_equal(task0$upstream_tasks[[1]]$name, "task1")
 })
 
 test_that("multiple tasks can be added at once", {
@@ -44,7 +44,7 @@ test_that("added upstream task references task as downstream", {
 
   expect_equal(length(task1$upstream_tasks), 0)
   expect_equal(length(task1$downstream_tasks), 1)
-  expect_equal(task1$downstream_tasks[[1]]$task_name, "task0")
+  expect_equal(task1$downstream_tasks[[1]]$name, "task0")
 })
 
 test_that("adding self as upstream task results in warning, and no link added", {

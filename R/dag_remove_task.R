@@ -14,7 +14,7 @@
 #'   dag_add_tasks(task0, task1)
 #'
 #' my_dag |> dag_remove_task(task1)
-#' my_dag$dag_tasks
+#' my_dag$tasks
 #' @export
 
 dag_remove_task <- function(env, task) {

@@ -7,7 +7,7 @@ test_that("tasks are added after dag is initialized", {
   dag0 |>
     dag_add_tasks(task0, task1)
 
-  expect_equal(length(dag0$dag_tasks), 2)
+  expect_equal(length(dag0$tasks), 2)
 })
 
 test_that("env is a ConnectDAG", {
@@ -34,5 +34,5 @@ test_that("Same task added more than once only links once", {
   dag0 |>
     dag_add_tasks(task0, task0)
 
-  expect_equal(length(dag0$dag_tasks), 1)
+  expect_equal(length(dag0$tasks), 1)
 })

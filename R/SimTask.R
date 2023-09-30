@@ -5,7 +5,7 @@
 #' @section Usage:
 #' \preformatted{
 #' sim_task <- SimTask$new("task0", "always", 0)
-#' sim_task$execute_task()
+#' sim_task$execute()
 #' }
 #'
 #' @section Details:
@@ -45,30 +45,30 @@ SimTask <- R6::R6Class(
 
       trigger_rule <- match.arg(trigger_rule, trigger_options)
 
-      self$task_guid <- paste0("simulated_", guid)
-      self$task_name <- guid
-      self$task_status <- "Pending"
+      self$guid <- paste0("simulated_", guid)
+      self$name <- guid
+      self$status <- "Pending"
       self$trigger_rule <- trigger_rule
       self$fail_prob <- fail_prob
     },
 
     #' @description Simulates the execution of task, taking into account failure probability
     #' @param verbose Should the task print messages as it executes?
-    execute_task = function(verbose = FALSE) {
-      if (verbose) message(paste("Starting task", self$task_name))
+    execute = function(verbose = FALSE) {
+      if (verbose) message(paste("Starting task", self$name))
 
       if (self$can_run()) {
         fail_run <- sample(c(T,F), 1, prob = c(self$fail_prob, 1-self$fail_prob))
 
         if (fail_run) {
-          self$task_status <- "Failed"
+          self$status <- "Failed"
           if (verbose) message("Task Failed")
         } else {
-          self$task_status <- "Succeeded"
+          self$status <- "Succeeded"
           if (verbose) message("Task Succeeded")
         }
       } else {
-        self$task_status <- "Skipped"
+        self$status <- "Skipped"
         if (verbose) message("Task Skipped")
       }
 

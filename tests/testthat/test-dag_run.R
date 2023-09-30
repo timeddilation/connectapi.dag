@@ -22,7 +22,7 @@ test_that("tasks execute with a valid DAG", {
   expect_true(dag0$is_complete)
 
   dag0_task_statuses <-
-    vapply(dag0$dag_tasks, {\(task) task$task_status}, character(1))
+    vapply(dag0$tasks, {\(task) task$status}, character(1))
   expect_true(all(dag0_task_statuses == "Succeeded"))
 })
 
@@ -59,7 +59,7 @@ test_that("a DAG does not execute if already executed", {
   expect_error(dag_run(dag0))
 
   dag0_task_statuses <-
-    vapply(dag0$dag_tasks, {\(task) task$task_status}, character(1))
+    vapply(dag0$tasks, {\(task) task$status}, character(1))
   expect_true(all(dag0_task_statuses == "Succeeded"))
 })
 
@@ -78,6 +78,6 @@ test_that("tasks do not execute with an invalid DAG", {
   expect_false(dag0$is_complete)
 
   dag0_task_statuses <-
-    vapply(dag0$dag_tasks, {\(task) task$task_status}, character(1))
+    vapply(dag0$tasks, {\(task) task$status}, character(1))
   expect_true(all(dag0_task_statuses == "Pending"))
 })

@@ -36,8 +36,8 @@ ConnectDAG <- R6::R6Class(
     name = NA_character_,
     #' @field pin_name The name of pin on Connect where this DAG is saved.
     pin_name = NA_character_,
-    #' @field dag_tasks A list of ConnectTasks this DAG is orchestrating.
-    dag_tasks = list(),
+    #' @field tasks A list of ConnectTasks this DAG is orchestrating.
+    tasks = list(),
     #' @field dag_graph An igraph object of all linked tasks in this DAG
     dag_graph = NA,
     #' @field is_valid Indicates if the tasks' dependency chain forms a proper DAG. DO NOT MODIFY DIRECTLY!
@@ -64,8 +64,8 @@ ConnectDAG <- R6::R6Class(
     add_task = function(task) {
       stopifnot(inherits(task, "ConnectTask"))
 
-      if (!task$task_guid %in% self$task_attrs("task_guid")) {
-        self$dag_tasks <- append(self$dag_tasks, task)
+      if (!task$guid %in% self$task_attrs("guid")) {
+        self$tasks <- append(self$tasks, task)
       }
 
       invisible(self)
@@ -76,15 +76,15 @@ ConnectDAG <- R6::R6Class(
     remove_task = function(task) {
       stopifnot(inherits(task, "ConnectTask"))
 
-      task_id <- task$task_guid
+      task_id <- task$guid
 
       task_idx <-
-        self$task_attrs("task_guid") |>
+        self$task_attrs("guid") |>
         {\(task_ids) task_ids == task_id}() |>
         which()
 
       if (length(task_idx) == 1) {
-        self$dag_tasks <- self$dag_tasks[-task_idx]
+        self$tasks <- self$tasks[-task_idx]
       } else {
         warning(paste("Task", task_id, "is not part of DAG."))
       }
@@ -139,9 +139,9 @@ ConnectDAG <- R6::R6Class(
 
     #' @description Returns a character vector of DAG tasks' specified attribute
     #' @param task_attr The name of the character attribute to return
-    task_attrs = function(task_attr = c("task_guid", "task_name", "task_status")) {
+    task_attrs = function(task_attr = c("guid", "name", "status")) {
       task_attr <- match.arg(task_attr)
-      vapply(self$dag_tasks, {\(task) purrr::pluck(task, task_attr)}, character(1))
+      vapply(self$tasks, {\(task) purrr::pluck(task, task_attr)}, character(1))
     },
 
     #' @description Returns a data.frame of all tasks added to this DAG
@@ -150,21 +150,21 @@ ConnectDAG <- R6::R6Class(
       if (revalidate_dag) private$validate_dag()
 
       tasks_df <- data.frame(
-        task_name = character(),
-        task_guid = character(),
-        task_status = character(),
+        guid = character(),
+        name = character(),
+        status = character(),
         trigger_rule = character(),
         exec_order = integer()
       )
 
-      if (length(self$dag_tasks) > 0) {
+      if (length(self$tasks) > 0) {
         tasks_df <-
-          do.call(rbind, lapply(self$dag_tasks, {\(task) task$df_row()}))
+          do.call(rbind, lapply(self$tasks, {\(task) task$df_row()}))
 
         if (self$is_valid) {
-          ordered_tasks <- data.frame(task_guid = private$task_exec_order())
+          ordered_tasks <- data.frame(guid = private$task_exec_order())
           ordered_tasks$exec_order <- ordered_tasks |> row.names() |> as.integer()
-          tasks_df <- merge(tasks_df, ordered_tasks, by = "task_guid")
+          tasks_df <- merge(tasks_df, ordered_tasks, by = "guid")
           tasks_df <- tasks_df[order(tasks_df$exec_order),]
         } else {
           tasks_df$exec_order <- NA_integer_
@@ -205,7 +205,7 @@ ConnectDAG <- R6::R6Class(
 
     #' @description Resets the DAG to an initial state, allowing it to run again
     reset = function() {
-      for (task in self$dag_tasks) {
+      for (task in self$tasks) {
         task$reset()
       }
 
@@ -239,7 +239,7 @@ ConnectDAG <- R6::R6Class(
   private = list(
     update_dag_graph = function() {
       # logical vector of actual graphs, not NAs
-      task_graphs <- lapply(self$dag_tasks, {\(task) task$task_graph})
+      task_graphs <- lapply(self$tasks, {\(task) task$task_graph})
       valid_task_graphs <- vapply(task_graphs, is, logical(1), "igraph")
 
       # first check if there are any linked tasks
@@ -278,7 +278,7 @@ ConnectDAG <- R6::R6Class(
       }
 
       ### Validation Step 2-3
-      task_list_guids <- self$task_attrs("task_guid")
+      task_list_guids <- self$task_attrs("guid")
       task_node_guids <- names(igraph::V(self$dag_graph))
 
       # check if all nodes in the graph have a task in the dag task list
@@ -334,8 +334,8 @@ ConnectDAG <- R6::R6Class(
 
     # Runs a DAG task
     run_dag_task = function(task_guid, verbose = FALSE) {
-      dag_task <- which(self$task_attrs("task_guid") == task_guid)
-      task_run(self$dag_tasks[[dag_task]], verbose)
+      dag_task <- which(self$task_attrs("guid") == task_guid)
+      task_run(self$tasks[[dag_task]], verbose)
     }
   )
 )
