@@ -14,15 +14,11 @@
 #'   connect_dag() |>
 #'   dag_add_tasks(task0, task1)
 #'
-#' dag_run(my_dag)
+#' my_dag
 #' @export
 
 dag_add_tasks <- function(env, ...) {
   stopifnot(inherits(env, "ConnectDAG"))
 
-  for (task in list(...)) {
-    env$add_task(task)
-  }
-
-  return(env)
+  env$add_tasks(...)
 }

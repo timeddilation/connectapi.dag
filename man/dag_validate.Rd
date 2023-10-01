@@ -26,4 +26,5 @@ task1 |> set_downstream(task2)
 
 my_dag <- connect_dag(task1, task2)
 dag_validate(my_dag)
+my_dag
 }

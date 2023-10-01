@@ -1,7 +1,7 @@
 Package: connectapi.dag
 Type: Package
 Title: Task Orchestration for Posit Connect
-Version: 0.1.3
+Version: 0.1.4
 Author: Tyler Neumann
 Maintainer: Tyler Neumann <neumanntylers@gmail.com>
 Description: Design task orchestration for jobs in Posit Connect.

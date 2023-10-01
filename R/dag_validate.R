@@ -16,11 +16,10 @@
 #'
 #' my_dag <- connect_dag(task1, task2)
 #' dag_validate(my_dag)
+#' my_dag
 #' @export
 
 dag_validate <- function(env, verbose = TRUE) {
   stopifnot(inherits(env, "ConnectDAG"))
   env$evaluate_validity(verbose)
-
-  return(env)
 }

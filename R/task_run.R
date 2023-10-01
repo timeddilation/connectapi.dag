@@ -9,6 +9,7 @@
 #' @examples
 #' task0 <- connect_task("task0", simulated = TRUE)
 #' task_run(task0)
+#' task0
 #' @export
 
 task_run <- function(env, verbose = FALSE) {

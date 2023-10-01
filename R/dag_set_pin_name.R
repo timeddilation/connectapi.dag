@@ -14,12 +14,10 @@
 #' my_dag <- connect_dag(name = "my_dag")
 #' my_dag |> dag_set_pin_name("pinned_dag_name")
 #'
-#' my_dag$pin_name
+#' my_dag
 #' @export
 
 dag_set_pin_name <- function(env, pin_name) {
   stopifnot(inherits(env, "ConnectDAG"))
   env$set_connect_pin_name(pin_name)
-
-  return(env)
 }

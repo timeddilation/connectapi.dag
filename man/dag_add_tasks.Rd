@@ -23,5 +23,5 @@ my_dag <-
   connect_dag() |>
   dag_add_tasks(task0, task1)
 
-dag_run(my_dag)
+my_dag
 }

@@ -18,4 +18,5 @@ This is not normally called directly, the ConnectDAG will use this function inst
 \examples{
 task0 <- connect_task("task0", simulated = TRUE)
 task_run(task0)
+task0
 }

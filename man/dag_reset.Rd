@@ -29,4 +29,5 @@ my_dag <- connect_dag(name = "my_dag", task0, task1)
 dag_run(my_dag)
 
 dag_reset(my_dag)
+my_dag
 }

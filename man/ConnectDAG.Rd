@@ -60,6 +60,7 @@ Other R6 classes:
 \item \href{#method-ConnectDAG-new}{\code{ConnectDAG$new()}}
 \item \href{#method-ConnectDAG-print}{\code{ConnectDAG$print()}}
 \item \href{#method-ConnectDAG-add_task}{\code{ConnectDAG$add_task()}}
+\item \href{#method-ConnectDAG-add_tasks}{\code{ConnectDAG$add_tasks()}}
 \item \href{#method-ConnectDAG-remove_task}{\code{ConnectDAG$remove_task()}}
 \item \href{#method-ConnectDAG-set_name}{\code{ConnectDAG$set_name()}}
 \item \href{#method-ConnectDAG-set_connect_pin_name}{\code{ConnectDAG$set_connect_pin_name()}}
@@ -114,6 +115,23 @@ Adds a ConnectTask to this DAG
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{task}}{a ConnectTask R6 environment}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConnectDAG-add_tasks"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectDAG-add_tasks}{}}}
+\subsection{Method \code{add_tasks()}}{
+Adds any number of ConnectTasks to this DAG
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$add_tasks(...)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{Any number of ConnectTask R6 environments}
 }
 \if{html}{\out{</div>}}
 }

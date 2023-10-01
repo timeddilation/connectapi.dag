@@ -23,5 +23,5 @@ Note that using `dag_set_name()` will also change the pin name.
 my_dag <- connect_dag(name = "my_dag")
 my_dag |> dag_set_pin_name("pinned_dag_name")
 
-my_dag$pin_name
+my_dag
 }

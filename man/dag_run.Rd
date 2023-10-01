@@ -22,4 +22,5 @@ task0 |> set_downstream(task1)
 
 my_dag <- connect_dag(name = "my_dag", task0, task1)
 dag_run(my_dag)
+my_dag
 }

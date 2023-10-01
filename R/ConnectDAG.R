@@ -91,6 +91,16 @@ ConnectDAG <- R6::R6Class(
       invisible(self)
     },
 
+    #' @description Adds any number of ConnectTasks to this DAG
+    #' @param ... Any number of ConnectTask R6 environments
+    add_tasks = function(...) {
+      for (task in list(...)) {
+        self$add_task(task)
+      }
+
+      invisible(self)
+    },
+
     #' @description Removes a ConnectTask from this DAG
     #' @param task a ConnectTask R6 environment
     remove_task = function(task) {

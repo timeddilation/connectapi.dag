@@ -19,5 +19,5 @@ my_dag <-
   connect_dag() |>
   dag_set_name("My Awesome DAG")
 
-print(my_dag)
+my_dag
 }

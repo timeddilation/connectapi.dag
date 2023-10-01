@@ -22,11 +22,10 @@
 #' dag_run(my_dag)
 #'
 #' dag_reset(my_dag)
+#' my_dag
 #' @export
 
 dag_reset <- function(env) {
   stopifnot(inherits(env, "ConnectDAG"))
   env$reset()
-
-  return(env)
 }
