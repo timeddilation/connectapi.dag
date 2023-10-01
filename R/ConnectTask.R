@@ -110,6 +110,8 @@ ConnectTask <- R6::R6Class(
       cat("  Status:", self$status, "\n")
       cat("  Upstream Tasks:", length(self$upstream_tasks), "\n")
       cat("  Downstream Tasks:", length(self$downstream_tasks), "\n")
+
+      invisible(self)
     },
 
     #' @description Resets the task to an initial state, read to be executed

@@ -75,6 +75,8 @@ ConnectDAG <- R6::R6Class(
       cat("  Pin Name:", self$pin_name, "\n")
       cat("  Tasks:", length(self$tasks), "\n")
       cat(print_df)
+
+      invisible(self)
     },
 
     #' @description Adds a ConnectTask to this DAG
@@ -147,10 +149,15 @@ ConnectDAG <- R6::R6Class(
     },
 
     #' @description Prints a plotly graph of the DAG's graph
-    plot = function() {
+    #' @param plotly A logical, indicate to use a plotly visual or a static visual
+    plot = function(plotly = TRUE) {
       private$validate_dag()
       if (is(self$dag_graph, "igraph"))
-        dag_plotly(self)
+        if (plotly)
+          dag_plotly(self)
+        else
+          plot(self$dag_graph, layout = igraph::layout_as_tree(self$dag_graph))
+
       else
         return(invisible(NULL))
     },
