@@ -12,7 +12,7 @@ Class representing a DAG of Connect Tasks"><!-- mathjax --><script src="https://
     
     <a class="navbar-brand me-2" href="../index.html">connectapi.dag</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -124,6 +124,7 @@ Once validated, the DAG can orchestrate tasks in Posit Connect.</p>
 <ul><li><p><a href="#method-ConnectDAG-new"><code>ConnectDAG$new()</code></a></p></li>
 <li><p><a href="#method-ConnectDAG-print"><code>ConnectDAG$print()</code></a></p></li>
 <li><p><a href="#method-ConnectDAG-add_task"><code>ConnectDAG$add_task()</code></a></p></li>
+<li><p><a href="#method-ConnectDAG-add_tasks"><code>ConnectDAG$add_tasks()</code></a></p></li>
 <li><p><a href="#method-ConnectDAG-remove_task"><code>ConnectDAG$remove_task()</code></a></p></li>
 <li><p><a href="#method-ConnectDAG-set_name"><code>ConnectDAG$set_name()</code></a></p></li>
 <li><p><a href="#method-ConnectDAG-set_connect_pin_name"><code>ConnectDAG$set_connect_pin_name()</code></a></p></li>
@@ -178,15 +179,31 @@ Once validated, the DAG can orchestrate tasks in Posit Connect.</p>
 </dl><p></p></div>
 </div>
 
-</div><p></p><hr><a id="method-ConnectDAG-remove_task"></a><div class="section">
-<h3 id="method-remove-task-">Method <code>remove_task()</code><a class="anchor" aria-label="anchor" href="#method-remove-task-"></a></h3>
-<p>Removes a ConnectTask from this DAG</p><div class="section">
+</div><p></p><hr><a id="method-ConnectDAG-add_tasks"></a><div class="section">
+<h3 id="method-add-tasks-">Method <code>add_tasks()</code><a class="anchor" aria-label="anchor" href="#method-add-tasks-"></a></h3>
+<p>Adds any number of ConnectTasks to this DAG</p><div class="section">
 <h4 id="usage-4">Usage<a class="anchor" aria-label="anchor" href="#usage-4"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">remove_task</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">add_tasks</span><span class="op">(</span><span class="va">...</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
 <h4 id="arguments-2">Arguments<a class="anchor" aria-label="anchor" href="#arguments-2"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>...</code></dt>
+<dd><p>Any number of ConnectTask R6 environments</p></dd>
+
+
+</dl><p></p></div>
+</div>
+
+</div><p></p><hr><a id="method-ConnectDAG-remove_task"></a><div class="section">
+<h3 id="method-remove-task-">Method <code>remove_task()</code><a class="anchor" aria-label="anchor" href="#method-remove-task-"></a></h3>
+<p>Removes a ConnectTask from this DAG</p><div class="section">
+<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">remove_task</span><span class="op">(</span><span class="va">task</span><span class="op">)</span></span></code></pre></div><p></p></div>
+</div>
+
+<div class="section">
+<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>task</code></dt>
 <dd><p>a ConnectTask R6 environment</p></dd>
 
@@ -197,12 +214,12 @@ Once validated, the DAG can orchestrate tasks in Posit Connect.</p>
 </div><p></p><hr><a id="method-ConnectDAG-set_name"></a><div class="section">
 <h3 id="method-set-name-">Method <code>set_name()</code><a class="anchor" aria-label="anchor" href="#method-set-name-"></a></h3>
 <p>Sets the name of this DAG, if needed to change after initializing</p><div class="section">
-<h4 id="usage-5">Usage<a class="anchor" aria-label="anchor" href="#usage-5"></a></h4>
+<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">set_name</span><span class="op">(</span><span class="va">name</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-3">Arguments<a class="anchor" aria-label="anchor" href="#arguments-3"></a></h4>
+<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>name</code></dt>
 <dd><p>A scalar character of the name</p></dd>
 
@@ -213,12 +230,12 @@ Once validated, the DAG can orchestrate tasks in Posit Connect.</p>
 </div><p></p><hr><a id="method-ConnectDAG-set_connect_pin_name"></a><div class="section">
 <h3 id="method-set-connect-pin-name-">Method <code>set_connect_pin_name()</code><a class="anchor" aria-label="anchor" href="#method-set-connect-pin-name-"></a></h3>
 <p>Sets the name used when using <a href="dag_write_connect_pin.html">dag_write_connect_pin</a></p><div class="section">
-<h4 id="usage-6">Usage<a class="anchor" aria-label="anchor" href="#usage-6"></a></h4>
+<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">set_connect_pin_name</span><span class="op">(</span>pin_name <span class="op">=</span> <span class="va">self</span><span class="op">$</span><span class="va">name</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-4">Arguments<a class="anchor" aria-label="anchor" href="#arguments-4"></a></h4>
+<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>pin_name</code></dt>
 <dd><p>A scalar character of the name desired or required</p></dd>
 
@@ -229,20 +246,28 @@ Once validated, the DAG can orchestrate tasks in Posit Connect.</p>
 </div><p></p><hr><a id="method-ConnectDAG-plot"></a><div class="section">
 <h3 id="method-plot-">Method <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code><a class="anchor" aria-label="anchor" href="#method-plot-"></a></h3>
 <p>Prints a plotly graph of the DAG's graph</p><div class="section">
-<h4 id="usage-7">Usage<a class="anchor" aria-label="anchor" href="#usage-7"></a></h4>
-<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
+<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">plot</span><span class="op">(</span>plotly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
+<div class="section">
+<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<p></p><div class="arguments"><dl><dt><code>plotly</code></dt>
+<dd><p>A logical, indicate to use a plotly visual or a static visual</p></dd>
+
+
+</dl><p></p></div>
+</div>
 
 </div><p></p><hr><a id="method-ConnectDAG-task_attrs"></a><div class="section">
 <h3 id="method-task-attrs-">Method <code>task_attrs()</code><a class="anchor" aria-label="anchor" href="#method-task-attrs-"></a></h3>
 <p>Returns a character vector of DAG tasks' specified attribute</p><div class="section">
-<h4 id="usage-8">Usage<a class="anchor" aria-label="anchor" href="#usage-8"></a></h4>
+<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">task_attrs</span><span class="op">(</span>task_attr <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"guid"</span>, <span class="st">"name"</span>, <span class="st">"status"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-5">Arguments<a class="anchor" aria-label="anchor" href="#arguments-5"></a></h4>
+<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>task_attr</code></dt>
 <dd><p>The name of the character attribute to return</p></dd>
 
@@ -253,12 +278,12 @@ Once validated, the DAG can orchestrate tasks in Posit Connect.</p>
 </div><p></p><hr><a id="method-ConnectDAG-tasks_as_df"></a><div class="section">
 <h3 id="method-tasks-as-df-">Method <code>tasks_as_df()</code><a class="anchor" aria-label="anchor" href="#method-tasks-as-df-"></a></h3>
 <p>Returns a data.frame of all tasks added to this DAG</p><div class="section">
-<h4 id="usage-9">Usage<a class="anchor" aria-label="anchor" href="#usage-9"></a></h4>
+<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">tasks_as_df</span><span class="op">(</span>revalidate_dag <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-6">Arguments<a class="anchor" aria-label="anchor" href="#arguments-6"></a></h4>
+<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>revalidate_dag</code></dt>
 <dd><p>Should the DAG be validated before returning the data.frame?</p></dd>
 
@@ -269,12 +294,12 @@ Once validated, the DAG can orchestrate tasks in Posit Connect.</p>
 </div><p></p><hr><a id="method-ConnectDAG-execute"></a><div class="section">
 <h3 id="method-execute-">Method <code>execute()</code><a class="anchor" aria-label="anchor" href="#method-execute-"></a></h3>
 <p>Executes all tasks, in order, that are added to this DAG</p><div class="section">
-<h4 id="usage-10">Usage<a class="anchor" aria-label="anchor" href="#usage-10"></a></h4>
+<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">execute</span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-7">Arguments<a class="anchor" aria-label="anchor" href="#arguments-7"></a></h4>
+<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>verbose</code></dt>
 <dd><p>Should it print messages as it executes tasks?</p></dd>
 
@@ -285,7 +310,7 @@ Once validated, the DAG can orchestrate tasks in Posit Connect.</p>
 </div><p></p><hr><a id="method-ConnectDAG-reset"></a><div class="section">
 <h3 id="method-reset-">Method <code>reset()</code><a class="anchor" aria-label="anchor" href="#method-reset-"></a></h3>
 <p>Resets the DAG to an initial state, allowing it to run again</p><div class="section">
-<h4 id="usage-11">Usage<a class="anchor" aria-label="anchor" href="#usage-11"></a></h4>
+<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">reset</span><span class="op">(</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
@@ -293,12 +318,12 @@ Once validated, the DAG can orchestrate tasks in Posit Connect.</p>
 </div><p></p><hr><a id="method-ConnectDAG-evaluate_validity"></a><div class="section">
 <h3 id="method-evaluate-validity-">Method <code>evaluate_validity()</code><a class="anchor" aria-label="anchor" href="#method-evaluate-validity-"></a></h3>
 <p>Determines if all added tasks form a valid DAG, setting the `is_valid` field</p><div class="section">
-<h4 id="usage-12">Usage<a class="anchor" aria-label="anchor" href="#usage-12"></a></h4>
+<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">evaluate_validity</span><span class="op">(</span>verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-8">Arguments<a class="anchor" aria-label="anchor" href="#arguments-8"></a></h4>
+<h4 id="arguments-10">Arguments<a class="anchor" aria-label="anchor" href="#arguments-10"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>verbose</code></dt>
 <dd><p>Should it print a message to the console of the result?</p></dd>
 
@@ -309,12 +334,12 @@ Once validated, the DAG can orchestrate tasks in Posit Connect.</p>
 </div><p></p><hr><a id="method-ConnectDAG-clone"></a><div class="section">
 <h3 id="method-clone-">Method <code>clone()</code><a class="anchor" aria-label="anchor" href="#method-clone-"></a></h3>
 <p>The objects of this class are cloneable with this method.</p><div class="section">
-<h4 id="usage-13">Usage<a class="anchor" aria-label="anchor" href="#usage-13"></a></h4>
+<h4 id="usage-14">Usage<a class="anchor" aria-label="anchor" href="#usage-14"></a></h4>
 <p></p><div class="r"><div class="sourceCode"><pre><code><span><span class="va">ConnectDAG</span><span class="op">$</span><span class="fu">clone</span><span class="op">(</span>deep <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div><p></p></div>
 </div>
 
 <div class="section">
-<h4 id="arguments-9">Arguments<a class="anchor" aria-label="anchor" href="#arguments-9"></a></h4>
+<h4 id="arguments-11">Arguments<a class="anchor" aria-label="anchor" href="#arguments-11"></a></h4>
 <p></p><div class="arguments"><dl><dt><code>deep</code></dt>
 <dd><p>Whether to make a deep clone.</p></dd>
 
