@@ -175,9 +175,16 @@ Sets the name used when using \link[connectapi.dag]{dag_write_connect_pin}
 \subsection{Method \code{plot()}}{
 Prints a plotly graph of the DAG's graph
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$plot()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$plot(plotly = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{plotly}}{A logical, indicate to use a plotly visual or a static visual}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConnectDAG-task_attrs"></a>}}
