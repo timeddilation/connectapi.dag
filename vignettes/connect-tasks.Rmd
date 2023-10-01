@@ -2,7 +2,7 @@
 title: "Connect Tasks"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{connect-tasks}
+  %\VignetteIndexEntry{Connect Tasks}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -121,7 +121,7 @@ Now, our _notify stakeholder_ task will only run after the
 _analysis_ task is complete.
 We can visualize this dependency chain by using `plot` on any of the tasks. Note the the `plot` function on a task will only show the immediate dependencies and dependents.
 
-```{r, fig.dim = c(6, 4)}
+```{r, fig.dim = c(6, 4), fig.align='center'}
 plot(notify_task)
 ```
 
@@ -129,7 +129,7 @@ Dependency chains may grow exceptionally in complexity.
 This package offers a simplified interface to express these
 dependency chains and ensure their consistency.
 
-```{r, fig.dim = c(6, 4)}
+```{r, fig.dim = c(6, 4), fig.align='center'}
 extract_task <- connect_task("extract", simulated = TRUE)
 analysis_task <- connect_task("analysis", simulated = TRUE)
 notify_task <- connect_task("email_stakeholder", simulated = TRUE)
@@ -151,7 +151,7 @@ using Connect DAGs in this packache.
 However, plotting a single task will only display the immediate (one-hop) links. For example, we may have a final task after our modelling
 task is complete to update the model hosted in our plumber API.
 
-```{r, fig.dim = c(6, 4)}
+```{r, fig.dim = c(6, 4), fig.align='center'}
 reload_api_model <- connect_task("deploy_model", simulated = TRUE)
 reload_api_model |> set_upstream(model_task)
 
@@ -162,7 +162,7 @@ Notice that when we plot the _Model Task_ it does not include the
 extract nor the notify task. Only plotting DAGs will display the full
 dependency chain. Refer to the Connect DAGs vignette for more details.
 
-```{r, fig.dim = c(6, 4)}
+```{r, fig.dim = c(6, 4), fig.align='center'}
 my_dag <- connect_dag(extract_task, analysis_task, notify_task,
                       model_task, reload_api_model)
 
@@ -198,7 +198,7 @@ This may be changed when defining the task.
 For example, maybe we need to notify the data provider when there was an
 issue with the extraction step.
 
-```{r, fig.dim = c(6, 4)}
+```{r, fig.dim = c(6, 4), fig.align='center'}
 notify_vendor <- connect_task(
   "notify_vendor",
   trigger_rule = "all_failed",
