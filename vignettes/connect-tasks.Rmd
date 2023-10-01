@@ -93,7 +93,8 @@ Dependency chains are the foundation of DAGs in this package.
 Almost all of the heavy lifting for orchestrating DAGs is actually
 defined on the tasks.
 
-In even simple data pipelines, you may decompose the steps of the analysis into three general steps;
+In even simple data pipelines, you may decompose the steps of the analysis
+into three general steps;
 extract, transform, and load. Loading usually
 means storing the data, but may also be a final product or presentation.
 
@@ -109,7 +110,8 @@ What preconditions should those tasks have for me to run?
 What tasks should occur after we run?
 
 Tho define these dependency chains, this package offers the functions
-`set_upstream` and `set_downstream` to define dependency (run before) tasks and dependent (run after) tasks respectively.
+`set_upstream` and `set_downstream` to define dependency (run before) tasks
+and dependent (run after) tasks respectively.
 
 ```{r}
 analysis_task <- connect_task("analysis", simulated = TRUE)
@@ -119,7 +121,9 @@ notify_task |> set_upstream(analysis_task)
 
 Now, our _notify stakeholder_ task will only run after the
 _analysis_ task is complete.
-We can visualize this dependency chain by using `plot` on any of the tasks. Note the the `plot` function on a task will only show the immediate dependencies and dependents.
+We can visualize this dependency chain by using `plot` on any of the tasks.
+Note the the `plot` function on a task will only show
+the immediate dependencies and dependents.
 
 ```{r, fig.dim = c(6, 4), fig.align='center'}
 plot(notify_task)
@@ -148,7 +152,8 @@ Dependency chiains do not need to be a one-hop away.
 Dependency chains may be extended to any tree depth, and orchestrated
 using Connect DAGs in this packache.
 
-However, plotting a single task will only display the immediate (one-hop) links. For example, we may have a final task after our modelling
+However, plotting a single task will only display the immediate (one-hop) links.
+For example, we may have a final task after our modelling
 task is complete to update the model hosted in our plumber API.
 
 ```{r, fig.dim = c(6, 4), fig.align='center'}
@@ -274,11 +279,13 @@ run `task_run()` on it.
 The second way is to use the `sim_task()` function. This function does not have
 Connect access parameters, and adds an additional parameter called `fail_prob`.
 This new parameter allows you to define a random chance for the task to fail.
-The value is set between 0 and 1, where 0 is always fail, and 1 is always succeed.
+The value is set between 0 and 1,
+where 0 is always fail, and 1 is always succeed.
 
 ```{r}
 connect_sim <- sim_task("some_task", fail_prob = 0.5)
 ```
 
-Tasks with a random chance to fail are useful when you want to see various
-scenarios of a DAG run. Outside of that use case, however, are otherwise useless.
+Tasks with a random chance to fail are useful
+when you want to see various scenarios of a DAG run.
+Outside of that use case, however, are otherwise useless.
