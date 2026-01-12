@@ -82,7 +82,7 @@ ConnectTask <- R6::R6Class(
         ))
       )
 
-      self$app_mode <- self$content$app_mode
+      self$app_mode <- self$connect_content_item$content$app_mode
       known_valid_app_modes <- c("jupyter-static", "rmd-static", "quarto-static")
 
       if (!self$app_mode %in% known_valid_app_modes) {
