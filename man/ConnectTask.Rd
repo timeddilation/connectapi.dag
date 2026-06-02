@@ -42,7 +42,7 @@ Other R6 classes:
 
 \item{\code{name}}{The name of the ContentItem on Connect}
 
-\item{\code{status}}{The status of this task. Possible statuses: Pending, Succeeded, Failed, Skipped}
+\item{\code{status}}{The status of this task. Possible statuses: Pending, Running, Succeeded, Failed, Skipped}
 
 \item{\code{trigger_rule}}{The rule for when to run this task. See \link[connectapi.dag]{connect_task} for details}
 
@@ -61,6 +61,16 @@ Other R6 classes:
 \item{\code{connect_rendering}}{A VariantRender R6 env generated from connectapi::variant_render()}
 
 \item{\code{app_mode}}{The type of content being rendered on Posit Connect}
+
+\item{\code{poll_task_id}}{The task id of the active rendering, cached when the task is dispatched}
+
+\item{\code{poll_first}}{The log cursor used for incremental render output when polling}
+
+\item{\code{poll_output}}{The accumulated render log output collected while polling}
+
+\item{\code{poll_error_count}}{The count of consecutive transient errors encountered while polling}
+
+\item{\code{dispatch_time}}{The time the task's render was dispatched, used to enforce task timeouts}
 }
 \if{html}{\out{</div>}}
 }
@@ -77,8 +87,9 @@ Other R6 classes:
 \item \href{#method-ConnectTask-update_task_graph}{\code{ConnectTask$update_task_graph()}}
 \item \href{#method-ConnectTask-plot}{\code{ConnectTask$plot()}}
 \item \href{#method-ConnectTask-linked_tasks_attrs}{\code{ConnectTask$linked_tasks_attrs()}}
+\item \href{#method-ConnectTask-dispatch}{\code{ConnectTask$dispatch()}}
+\item \href{#method-ConnectTask-poll_once}{\code{ConnectTask$poll_once()}}
 \item \href{#method-ConnectTask-execute}{\code{ConnectTask$execute()}}
-\item \href{#method-ConnectTask-poll_task}{\code{ConnectTask$poll_task()}}
 \item \href{#method-ConnectTask-can_run}{\code{ConnectTask$can_run()}}
 \item \href{#method-ConnectTask-clone}{\code{ConnectTask$clone()}}
 }
@@ -233,12 +244,21 @@ Returns a list of the linked tasks' attributes
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ConnectTask-execute"></a>}}
-\if{latex}{\out{\hypertarget{method-ConnectTask-execute}{}}}
-\subsection{Method \code{execute()}}{
-Executes a ConnectTask on a remote Connect Server
+\if{html}{\out{<a id="method-ConnectTask-dispatch"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectTask-dispatch}{}}}
+\subsection{Method \code{dispatch()}}{
+Starts the content render on Connect without waiting for it to finish.
+
+This is the non-blocking half of executing a task. It requests the
+default variant and kicks off a render, transitioning the task to the
+"Running" status and caching the task id so the render can be polled
+later with \code{poll_once()}. Unlike a direct \code{execute()} call,
+a render that cannot be started does not raise an error; the task is
+marked "Failed" and the error message is captured in \code{poll_output}.
+This lets the DAG scheduler dispatch many tasks without one failure
+aborting the whole run.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConnectTask$execute(verbose = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConnectTask$dispatch(verbose = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -250,12 +270,48 @@ Executes a ConnectTask on a remote Connect Server
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-ConnectTask-poll_task"></a>}}
-\if{latex}{\out{\hypertarget{method-ConnectTask-poll_task}{}}}
-\subsection{Method \code{poll_task()}}{
-A wrapper around connectapi::poll_task for this task's execution
+\if{html}{\out{<a id="method-ConnectTask-poll_once"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectTask-poll_once}{}}}
+\subsection{Method \code{poll_once()}}{
+Polls the active render once, without blocking on completion.
+
+Reads the current state of the render directly from Connect, advancing
+the log cursor and collecting any new output. When the render finishes,
+the task transitions to "Succeeded" (exit code 0) or "Failed".
+A render failure reported by Connect is terminal. A thrown error
+(e.g. a transient network issue) is not immediately fatal: it
+increments \code{poll_error_count}, and the task is only marked "Failed"
+after \code{error_threshold} consecutive errors.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConnectTask$poll_task(verbose = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConnectTask$poll_once(wait = 0, verbose = FALSE, error_threshold = 3L)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{wait}}{The seconds Connect should hold the request waiting for progress. Defaults to 0 (return immediately).}
+
+\item{\code{verbose}}{Should the task print render output as it polls?}
+
+\item{\code{error_threshold}}{Consecutive transient poll errors tolerated before the task is failed.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConnectTask-execute"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectTask-execute}{}}}
+\subsection{Method \code{execute()}}{
+Executes a ConnectTask on a remote Connect Server, blocking until it finishes.
+
+This is a convenience wrapper used for running a single task on its own
+(e.g. via \link[connectapi.dag]{task_run}). It evaluates the trigger
+rule, dispatches the render, then polls until the task reaches a
+terminal status. The DAG scheduler does not use this method; it drives
+\code{dispatch()} and \code{poll_once()} directly so independent tasks
+can run concurrently.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ConnectTask$execute(verbose = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{

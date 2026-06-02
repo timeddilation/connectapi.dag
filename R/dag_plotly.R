@@ -80,6 +80,18 @@ dag_plotly <- function(connect_dag) {
       )
     ) |>
     plotly::add_trace(
+      data = plot_nodes_df[plot_nodes_df$status == "Running",],
+      x = ~posx,
+      y = ~posy,
+      color = ~status,
+      text = ~plotly_text,
+      hoverinfo = "text",
+      marker = list(
+        size = 48,
+        color = "#F0AD4E"
+      )
+    ) |>
+    plotly::add_trace(
       data = plot_nodes_df[plot_nodes_df$status == "Failed",],
       x = ~posx,
       y = ~posy,

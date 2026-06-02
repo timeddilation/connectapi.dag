@@ -61,3 +61,21 @@ test_that("ConnectDAG plot method returns plotly when graph is available", {
 
   expect_true(inherits(dag0$plot(), "plotly"))
 })
+
+test_that("a DAG with a Running task plots without warning", {
+  task0 <- sim_task("task0", fail_prob = 0, sim_duration = 5)
+  task1 <- sim_task("task1", fail_prob = 0)
+  task0 |> set_downstream(task1)
+
+  dag0 <-
+    connect_dag(task0, task1) |>
+    dag_validate() |>
+    suppressMessages()
+
+  # leave task0 in a Running state
+  task0$dispatch()
+  expect_equal(task0$status, "Running")
+
+  expect_no_warning(dag_plotly(dag0))
+  expect_true(inherits(dag_plotly(dag0), "plotly"))
+})

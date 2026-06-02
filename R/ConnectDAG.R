@@ -50,12 +50,22 @@ ConnectDAG <- R6::R6Class(
     run_end = NA,
     #' @field is_complete Indicates if all tasks in this DAG have been evaluated for execution.
     is_complete = FALSE,
+    #' @field max_concurrent The maximum number of tasks allowed to run simultaneously. Defaults to 1 (sequential).
+    max_concurrent = 1L,
+    #' @field poll_interval The seconds the scheduler sleeps between poll cycles while tasks are running.
+    poll_interval = 1,
+    #' @field task_timeout The maximum seconds a single task may run before being failed. NA disables the timeout.
+    task_timeout = NA_real_,
+    #' @field dag_timeout The maximum seconds the entire DAG run may take before remaining tasks are failed. NA disables the timeout.
+    dag_timeout = NA_real_,
 
     #' @description Initializes a new ConnectDAG
     #' @param name A personalized name for the DAG
     #' @param ... Connect Tasks to add to the graph
-    initialize = function(name = "new_dag", ...) {
+    #' @param max_concurrent The maximum number of tasks allowed to run simultaneously. Defaults to 1 (sequential).
+    initialize = function(name = "new_dag", ..., max_concurrent = 1L) {
       self$set_name(name)
+      self$set_max_concurrent(max_concurrent)
       dag_add_tasks(self, ...)
     },
 
@@ -158,6 +168,42 @@ ConnectDAG <- R6::R6Class(
       invisible(self)
     },
 
+    #' @description Sets the maximum number of tasks allowed to run simultaneously when the DAG executes
+    #' @param n A positive integer. 1 runs the DAG sequentially; higher values allow concurrent task execution.
+    set_max_concurrent = function(n) {
+      stopifnot(is.numeric(n), length(n) == 1, n >= 1)
+      self$max_concurrent <- as.integer(n)
+
+      invisible(self)
+    },
+
+    #' @description Sets how long a single task may run before the scheduler fails it
+    #' @param seconds A positive number of seconds, or NA to disable the per-task timeout
+    set_task_timeout = function(seconds) {
+      stopifnot(length(seconds) == 1, is.na(seconds) || (is.numeric(seconds) && seconds > 0))
+      self$task_timeout <- as.numeric(seconds)
+
+      invisible(self)
+    },
+
+    #' @description Sets the overall wall-clock limit for an entire DAG run
+    #' @param seconds A positive number of seconds, or NA to disable the global timeout
+    set_dag_timeout = function(seconds) {
+      stopifnot(length(seconds) == 1, is.na(seconds) || (is.numeric(seconds) && seconds > 0))
+      self$dag_timeout <- as.numeric(seconds)
+
+      invisible(self)
+    },
+
+    #' @description Sets the seconds the scheduler sleeps between poll cycles while tasks are running
+    #' @param seconds A positive number of seconds
+    set_poll_interval = function(seconds) {
+      stopifnot(is.numeric(seconds), length(seconds) == 1, seconds > 0)
+      self$poll_interval <- as.numeric(seconds)
+
+      invisible(self)
+    },
+
     #' @description Prints a plotly graph of the DAG's graph
     #' @param plotly A logical, indicate to use a plotly visual or a static visual
     plot = function(plotly = TRUE) {
@@ -209,9 +255,10 @@ ConnectDAG <- R6::R6Class(
       return(tasks_df)
     },
 
-    #' @description Executes all tasks, in order, that are added to this DAG
+    #' @description Executes all tasks added to this DAG, honoring dependencies and trigger rules
     #' @param verbose Should it print messages as it executes tasks?
-    execute = function(verbose = FALSE) {
+    #' @param max_concurrent An optional override for the DAG's `max_concurrent` field for this run only
+    execute = function(verbose = FALSE, max_concurrent = NULL) {
       # Preflight checks
       ## check if this instance already attempted to execute
       if (self$is_complete) {
@@ -223,13 +270,14 @@ ConnectDAG <- R6::R6Class(
         stop("Not a valid DAG. Cannot execute tasks.")
       }
 
+      cap <- if (is.null(max_concurrent)) self$max_concurrent else as.integer(max_concurrent)
+      stopifnot(is.numeric(cap), length(cap) == 1, cap >= 1)
+
       # Execution Logic
       self$run_id <- uuid::UUIDgenerate()
       self$run_start <- Sys.time()
 
-      for (task in private$task_exec_order()) {
-        private$run_dag_task(task, verbose)
-      }
+      private$run_scheduler(cap, verbose)
 
       self$run_end <- Sys.time()
       self$is_complete <- TRUE
@@ -367,10 +415,84 @@ ConnectDAG <- R6::R6Class(
     },
 
 
-    # Runs a DAG task
-    run_dag_task = function(task_guid, verbose = FALSE) {
-      dag_task <- which(self$task_attrs("guid") == task_guid)
-      task_run(self$tasks[[dag_task]], verbose)
+    # Cooperative scheduler driving concurrent task execution.
+    #
+    # The expensive work (rendering content) happens on the Connect server, so a
+    # single R session can orchestrate many simultaneous renders by dispatching
+    # them and polling each without blocking. Each cycle:
+    #   1. poll every Running task once (non-blocking), failing any that exceed
+    #      the per-task timeout;
+    #   2. find Pending tasks whose immediate upstreams are all terminal, in topo
+    #      order, and either Skip them (trigger rule unmet) or dispatch them up to
+    #      the concurrency cap;
+    #   3. sleep one poll_interval while tasks are genuinely running, otherwise
+    #      loop immediately so chains of skips resolve without delay.
+    # The loop ends when no task is Pending or Running. Termination is guaranteed
+    # because the graph is a validated DAG and both timeouts force terminality.
+    run_scheduler = function(cap, verbose = FALSE) {
+      ordered_guids <- private$task_exec_order()
+
+      repeat {
+        status_of <- function(task) task$status
+        statuses <- vapply(self$tasks, status_of, character(1))
+
+        running <- self$tasks[statuses == "Running"]
+        pending <- self$tasks[statuses == "Pending"]
+
+        if (length(running) == 0 && length(pending) == 0) break
+
+        # Global timeout guard
+        if (!is.na(self$dag_timeout) &&
+            as.numeric(difftime(Sys.time(), self$run_start, units = "secs")) > self$dag_timeout) {
+          for (task in running) task$status <- "Failed"
+          if (verbose) message("DAG timeout exceeded. Remaining running tasks marked Failed.")
+          break
+        }
+
+        # 1. Poll every running task once, enforcing the per-task timeout
+        for (task in running) {
+          task$poll_once(wait = 0, verbose = verbose)
+          if (task$status == "Running" && !is.na(self$task_timeout) &&
+              as.numeric(difftime(Sys.time(), task$dispatch_time, units = "secs")) > self$task_timeout) {
+            task$status <- "Failed"
+            if (verbose) message(paste0("[", task$name, "] Task timeout exceeded. Marked Failed."))
+          }
+        }
+
+        # 2. Find Pending tasks whose immediate upstreams are all terminal
+        eligible <- Filter(
+          function(task) {
+            ups <- unlist(task$linked_tasks_attrs("upstream_tasks", "status"))
+            length(ups) == 0 || all(ups %in% terminal_statuses)
+          },
+          self$tasks[vapply(self$tasks, status_of, character(1)) == "Pending"]
+        )
+
+        if (length(eligible) > 0) {
+          eligible_guids <- vapply(eligible, {\(task) task$guid}, character(1))
+          eligible <- eligible[order(match(eligible_guids, ordered_guids))]
+        }
+
+        # 3. Evaluate trigger rules; skip or dispatch up to the concurrency cap
+        for (task in eligible) {
+          if (!task$can_run()) {
+            task$status <- "Skipped"
+            if (verbose) message(paste0("[", task$name, "] Task Skipped"))
+            next
+          }
+
+          n_running <- sum(vapply(self$tasks, status_of, character(1)) == "Running")
+          if (n_running >= cap) break
+
+          task$dispatch(verbose)
+        }
+
+        # 4. Sleep only while something is genuinely rendering on the server
+        any_running <- any(vapply(self$tasks, status_of, character(1)) == "Running")
+        if (any_running) Sys.sleep(self$poll_interval)
+      }
+
+      invisible(self)
     }
   )
 )

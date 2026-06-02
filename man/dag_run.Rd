@@ -4,16 +4,19 @@
 \alias{dag_run}
 \title{Run orchestrated ConnectTasks}
 \usage{
-dag_run(env, verbose = FALSE)
+dag_run(env, verbose = FALSE, max_concurrent = NULL)
 }
 \arguments{
 \item{env}{A ConnectDAG R6 environment created by \link[connectapi.dag]{connect_dag}}
 
 \item{verbose}{A boolean, when TRUE prints messages to console as tasks execute}
+
+\item{max_concurrent}{An optional override for the DAG's `max_concurrent` field, applied to this run only}
 }
 \description{
-Executes Posit Connect Tasks sequentially,
-ensuring dependency tasks run before dependents.
+Executes Posit Connect Tasks, ensuring dependency tasks run before dependents.
+Independent tasks may run concurrently when the DAG's `max_concurrent` is
+greater than 1 (see \link[connectapi.dag]{dag_set_max_concurrent}).
 }
 \examples{
 task0 <- connect_task("task0", simulated = TRUE)

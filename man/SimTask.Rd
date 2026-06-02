@@ -20,12 +20,14 @@ sim_task$execute()
 
 
 This class simulates a ConnectTask running in a ConnectDAG.
-It is inherited from ConnectTask, with the only differences being to the
-`new()` and `execute_task()` methods.
+It is inherited from ConnectTask, overriding the `new()`, `dispatch()`, and
+`poll_once()` methods so no calls are made to Posit Connect.
 However, when using a SimTask, no attempt is made to validate the content
 is published to Posit Connect.
 Additionally, you may control the probability a task will fail.
 This allows you to simulate the DAG under specific scenarios.
+You may also give a task a simulated duration (in scheduler poll cycles),
+which is useful for exercising concurrent DAG execution in tests.
 This class is used heavily in tests when it is desirable to force
 an upstream task failure.
 }
@@ -43,6 +45,12 @@ Other R6 classes:
 \if{html}{\out{<div class="r6-fields">}}
 \describe{
 \item{\code{fail_prob}}{A numeric between 0 and 1, determining the chance of a failure}
+
+\item{\code{sim_duration}}{The number of scheduler poll cycles the task stays Running before finishing}
+
+\item{\code{sim_polls_remaining}}{The number of poll cycles left before this dispatched task finishes}
+
+\item{\code{sim_will_fail}}{Whether the in-flight simulated render will end in failure, decided at dispatch}
 }
 \if{html}{\out{</div>}}
 }
@@ -50,7 +58,9 @@ Other R6 classes:
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-SimTask-new}{\code{SimTask$new()}}
-\item \href{#method-SimTask-execute}{\code{SimTask$execute()}}
+\item \href{#method-SimTask-reset}{\code{SimTask$reset()}}
+\item \href{#method-SimTask-dispatch}{\code{SimTask$dispatch()}}
+\item \href{#method-SimTask-poll_once}{\code{SimTask$poll_once()}}
 \item \href{#method-SimTask-clone}{\code{SimTask$clone()}}
 }
 }
@@ -59,12 +69,11 @@ Other R6 classes:
 <ul>
 <li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="can_run"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-can_run'><code>connectapi.dag::ConnectTask$can_run()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="df_row"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-df_row'><code>connectapi.dag::ConnectTask$df_row()</code></a></span></li>
+<li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="execute"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-execute'><code>connectapi.dag::ConnectTask$execute()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="link_task"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-link_task'><code>connectapi.dag::ConnectTask$link_task()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="linked_tasks_attrs"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-linked_tasks_attrs'><code>connectapi.dag::ConnectTask$linked_tasks_attrs()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="plot"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-plot'><code>connectapi.dag::ConnectTask$plot()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="poll_task"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-poll_task'><code>connectapi.dag::ConnectTask$poll_task()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="print"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-print'><code>connectapi.dag::ConnectTask$print()</code></a></span></li>
-<li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="reset"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-reset'><code>connectapi.dag::ConnectTask$reset()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="set_downstream"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-set_downstream'><code>connectapi.dag::ConnectTask$set_downstream()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="set_upstream"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-set_upstream'><code>connectapi.dag::ConnectTask$set_upstream()</code></a></span></li>
 <li><span class="pkg-link" data-pkg="connectapi.dag" data-topic="ConnectTask" data-id="update_task_graph"><a href='../../connectapi.dag/html/ConnectTask.html#method-ConnectTask-update_task_graph'><code>connectapi.dag::ConnectTask$update_task_graph()</code></a></span></li>
@@ -77,7 +86,12 @@ Other R6 classes:
 \subsection{Method \code{new()}}{
 Initializes a new SimTask
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SimTask$new(guid, trigger_rule = "all_success", fail_prob = 0.2)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SimTask$new(
+  guid,
+  trigger_rule = "all_success",
+  fail_prob = 0.2,
+  sim_duration = 0L
+)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -88,23 +102,56 @@ Initializes a new SimTask
 \item{\code{trigger_rule}}{A scalar character that defines state of dependency (upstream) tasks must be in to execute}
 
 \item{\code{fail_prob}}{A numeric between 0 and 1, determining the chance of a failure}
+
+\item{\code{sim_duration}}{The number of scheduler poll cycles the task should stay Running before finishing}
 }
 \if{html}{\out{</div>}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-SimTask-execute"></a>}}
-\if{latex}{\out{\hypertarget{method-SimTask-execute}{}}}
-\subsection{Method \code{execute()}}{
-Simulates the execution of task, taking into account failure probability
+\if{html}{\out{<a id="method-SimTask-reset"></a>}}
+\if{latex}{\out{\hypertarget{method-SimTask-reset}{}}}
+\subsection{Method \code{reset()}}{
+Resets the simulated task to an initial state
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SimTask$execute(verbose = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SimTask$reset()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SimTask-dispatch"></a>}}
+\if{latex}{\out{\hypertarget{method-SimTask-dispatch}{}}}
+\subsection{Method \code{dispatch()}}{
+Simulates dispatching a render, deciding the eventual outcome up front
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SimTask$dispatch(verbose = FALSE)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{verbose}}{Should the task print messages as it executes?}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-SimTask-poll_once"></a>}}
+\if{latex}{\out{\hypertarget{method-SimTask-poll_once}{}}}
+\subsection{Method \code{poll_once()}}{
+Simulates polling the render, finishing once the simulated duration elapses
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{SimTask$poll_once(wait = 0, verbose = FALSE, error_threshold = 3L)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{wait}}{Ignored for simulated tasks; present for signature compatibility}
+
+\item{\code{verbose}}{Should the task print messages as it executes?}
+
+\item{\code{error_threshold}}{Ignored for simulated tasks; present for signature compatibility}
 }
 \if{html}{\out{</div>}}
 }

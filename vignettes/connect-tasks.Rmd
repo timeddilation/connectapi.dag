@@ -289,3 +289,85 @@ connect_sim <- sim_task("some_task", fail_prob = 0.5)
 Tasks with a random chance to fail are useful
 when you want to see various scenarios of a DAG run.
 Outside of that use case, however, are otherwise useless.
+
+Simulated tasks also accept a `sim_duration` parameter, given in scheduler
+poll cycles. By default it is `0`, meaning a simulated task finishes
+immediately. Giving it a positive value makes the task stay in the _Running_
+status for that many cycles, which is helpful for observing concurrent
+execution (covered next).
+
+```{r}
+slow_sim <- sim_task("slow_task", fail_prob = 0, sim_duration = 3)
+```
+
+# Concurrency and Timeouts
+
+When a DAG runs, the heavy lifting — rendering the content — happens on the
+Posit Connect server, not in your R session. Your session only dispatches
+renders and polls them for completion. This means a single R session can keep
+several renders in flight at once, letting independent branches of a DAG run
+in parallel.
+
+By default a DAG runs one task at a time. This is controlled by the DAG's
+`max_concurrent` setting, which defaults to `1` (fully sequential). Raising it
+allows that many tasks to run simultaneously. Consider a DAG that extracts
+data, produces two independent reports, then notifies once both are done:
+
+```{r}
+extract <- sim_task("extract", fail_prob = 0)
+report_a <- sim_task("report_a", fail_prob = 0, sim_duration = 3)
+report_b <- sim_task("report_b", fail_prob = 0, sim_duration = 3)
+notify <- sim_task("notify", fail_prob = 0)
+
+extract |> set_downstream(report_a, report_b)
+notify |> set_upstream(report_a, report_b)
+
+parallel_dag <- connect_dag(
+  extract, report_a, report_b, notify,
+  name = "parallel_dag",
+  max_concurrent = 2
+)
+
+dag_run(parallel_dag)
+dag_as_df(parallel_dag)
+```
+
+With `max_concurrent = 2`, the two reports render at the same time rather than
+one after the other. You can set the limit when creating the DAG as above,
+change it afterwards, or override it for a single run.
+
+```{r, eval=FALSE}
+# change the persisted setting on the DAG
+dag_set_max_concurrent(parallel_dag, 4)
+
+# or override only for this run
+dag_run(parallel_dag, max_concurrent = 4)
+```
+
+Because the setting lives on the DAG, it is preserved when the DAG is saved as
+a pin and re-run by a scheduled job.
+
+Concurrency never changes the _outcome_ of a DAG, only its speed. A task is
+still only evaluated once all of its immediate upstream tasks have reached a
+terminal status, so the _trigger_rule_ always sees the final upstream
+statuses. A concurrent run produces exactly the same task statuses as a
+sequential one.
+
+## Timeouts
+
+Since a DAG run waits on renders finishing in Connect, you can protect against
+a render that never completes using two optional timeouts. A _task timeout_
+fails any single task that runs longer than the given number of seconds, while
+a _DAG timeout_ caps the entire run. In either case the offending task is
+marked _Failed_ and the run proceeds or stops, guaranteeing the DAG always
+terminates. Both are disabled by default.
+
+```{r, eval=FALSE}
+# fail any single task that runs longer than 10 minutes
+dag_set_task_timeout(parallel_dag, 600)
+
+# stop the whole run if it takes longer than 1 hour
+dag_set_dag_timeout(parallel_dag, 3600)
+```
+
+Like `max_concurrent`, both timeouts are stored on the DAG and persist with it.

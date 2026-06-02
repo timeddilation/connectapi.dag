@@ -6,6 +6,9 @@
 #'
 #' @param ... Connect Tasks to add to the graph
 #' @param name A personalized name for the DAG
+#' @param max_concurrent The maximum number of tasks allowed to run simultaneously.
+#'   Defaults to 1 (sequential execution). Higher values allow independent tasks to
+#'   render concurrently on Posit Connect.
 #'
 #' @return A ConnectDAG R6 environment
 #'
@@ -18,6 +21,6 @@
 #' my_dag
 #'
 #' @export
-connect_dag <- function(..., name = "new_dag") {
-  ConnectDAG$new(name, ...)
+connect_dag <- function(..., name = "new_dag", max_concurrent = 1L) {
+  ConnectDAG$new(name, ..., max_concurrent = max_concurrent)
 }

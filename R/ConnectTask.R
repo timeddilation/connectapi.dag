@@ -23,7 +23,6 @@
 #' @importFrom connectapi content_item
 #' @importFrom connectapi get_variant_default
 #' @importFrom connectapi variant_render
-#' @importFrom connectapi poll_task
 #' @importFrom igraph graph_from_data_frame
 #' @importFrom igraph layout_as_tree
 #' @importFrom purrr pluck
@@ -38,7 +37,7 @@ ConnectTask <- R6::R6Class(
     guid = NA_character_,
     #' @field name The name of the ContentItem on Connect
     name = NA_character_,
-    #' @field status The status of this task. Possible statuses: Pending, Succeeded, Failed, Skipped
+    #' @field status The status of this task. Possible statuses: Pending, Running, Succeeded, Failed, Skipped
     status = NA_character_,
     #' @field trigger_rule The rule for when to run this task. See \link[connectapi.dag]{connect_task} for details
     trigger_rule = NA_character_,
@@ -58,6 +57,16 @@ ConnectTask <- R6::R6Class(
     connect_rendering = NA,
     #' @field app_mode The type of content being rendered on Posit Connect
     app_mode = NA_character_,
+    #' @field poll_task_id The task id of the active rendering, cached when the task is dispatched
+    poll_task_id = NA_character_,
+    #' @field poll_first The log cursor used for incremental render output when polling
+    poll_first = 0L,
+    #' @field poll_output The accumulated render log output collected while polling
+    poll_output = NA_character_,
+    #' @field poll_error_count The count of consecutive transient errors encountered while polling
+    poll_error_count = 0L,
+    #' @field dispatch_time The time the task's render was dispatched, used to enforce task timeouts
+    dispatch_time = NA,
 
     #' @description Initializes a new ConnectTask
     #' @param guid A scalar character of the guid for the content deployed to Posit Connect
@@ -119,6 +128,11 @@ ConnectTask <- R6::R6Class(
       self$status <- "Pending"
       self$connect_variant <- NA
       self$connect_rendering <- NA
+      self$poll_task_id <- NA_character_
+      self$poll_first <- 0L
+      self$poll_output <- NA_character_
+      self$poll_error_count <- 0L
+      self$dispatch_time <- NA
 
       invisible(self)
     },
@@ -250,51 +264,128 @@ ConnectTask <- R6::R6Class(
       return(task_attrs)
     },
 
-    #' @description Executes a ConnectTask on a remote Connect Server
+    #' @description
+        #' Starts the content render on Connect without waiting for it to finish.
+        #'
+        #' This is the non-blocking half of executing a task. It requests the
+        #' default variant and kicks off a render, transitioning the task to the
+        #' "Running" status and caching the task id so the render can be polled
+        #' later with \code{poll_once()}. Unlike a direct \code{execute()} call,
+        #' a render that cannot be started does not raise an error; the task is
+        #' marked "Failed" and the error message is captured in \code{poll_output}.
+        #' This lets the DAG scheduler dispatch many tasks without one failure
+        #' aborting the whole run.
     #' @param verbose Should the task print messages as it executes?
-    execute = function(verbose = FALSE) {
+    dispatch = function(verbose = FALSE) {
       if (verbose) message(paste("Starting task", self$name))
 
-      if (self$can_run()) {
-        self$connect_variant <-
-          connectapi::get_variant_default(self$connect_content_item) |>
-          suppressWarnings()
+      self$connect_variant <-
+        connectapi::get_variant_default(self$connect_content_item) |>
+        suppressWarnings()
 
-        tryCatch(
-          self$connect_rendering <- connectapi::variant_render(self$connect_variant),
-          error = function(e) stop(paste(
-            self$guid,
-            "is not a content item that can render.",
-            "Make sure you do not specify an API, Application, or other content item without a render call.",
-            e
-          ))
+      tryCatch({
+        self$connect_rendering <- connectapi::variant_render(self$connect_variant)
+        self$poll_task_id <- self$connect_rendering$get_task()$task_id
+        self$dispatch_time <- Sys.time()
+        self$status <- "Running"
+      }, error = function(e) {
+        self$status <- "Failed"
+        self$poll_output <- paste(
+          self$guid,
+          "is not a content item that can render.",
+          "Make sure you do not specify an API, Application, or other content item without a render call.",
+          conditionMessage(e)
         )
+        if (verbose) message(paste("[", self$name, "] Task Failed to dispatch"))
+      })
 
-        self$poll_task(verbose)
-      } else {
-        self$status <- "Skipped"
-        if (verbose) message("Task Skipped")
+      invisible(self)
+    },
+
+    #' @description
+        #' Polls the active render once, without blocking on completion.
+        #'
+        #' Reads the current state of the render directly from Connect, advancing
+        #' the log cursor and collecting any new output. When the render finishes,
+        #' the task transitions to "Succeeded" (exit code 0) or "Failed".
+        #' A render failure reported by Connect is terminal. A thrown error
+        #' (e.g. a transient network issue) is not immediately fatal: it
+        #' increments \code{poll_error_count}, and the task is only marked "Failed"
+        #' after \code{error_threshold} consecutive errors.
+    #' @param wait The seconds Connect should hold the request waiting for progress. Defaults to 0 (return immediately).
+    #' @param verbose Should the task print render output as it polls?
+    #' @param error_threshold Consecutive transient poll errors tolerated before the task is failed.
+    poll_once = function(wait = 0, verbose = FALSE, error_threshold = 3L) {
+      task_data <- tryCatch(
+        self$connect_rendering$get_connect()$task(
+          self$poll_task_id,
+          first = self$poll_first,
+          wait = wait
+        ),
+        error = function(e) e
+      )
+
+      if (inherits(task_data, "error")) {
+        self$poll_error_count <- self$poll_error_count + 1L
+        if (self$poll_error_count >= error_threshold) {
+          self$status <- "Failed"
+          self$poll_output <- paste(
+            c(self$poll_output, conditionMessage(task_data)),
+            collapse = "\n"
+          )
+          if (verbose) message(paste0("[", self$name, "] Task Failed"))
+        }
+        return(invisible(self))
+      }
+
+      self$poll_error_count <- 0L
+      self$poll_first <- task_data[["last"]]
+
+      new_output <- unlist(task_data[["output"]])
+      if (length(new_output) > 0) {
+        self$poll_output <- paste(
+          c(if (!is.na(self$poll_output)) self$poll_output, new_output),
+          collapse = "\n"
+        )
+        if (verbose) {
+          for (line in new_output) message(paste0("[", self$name, "] ", line))
+        }
+      }
+
+      if (isTRUE(task_data[["finished"]])) {
+        if (task_data[["code"]] == 0) {
+          self$status <- "Succeeded"
+          if (verbose) message(paste0("[", self$name, "] Task Succeeded"))
+        } else {
+          self$status <- "Failed"
+          if (verbose) message(paste0("[", self$name, "] Task Failed"))
+        }
       }
 
       invisible(self)
     },
 
-    #' @description A wrapper around connectapi::poll_task for this task's execution
+    #' @description
+        #' Executes a ConnectTask on a remote Connect Server, blocking until it finishes.
+        #'
+        #' This is a convenience wrapper used for running a single task on its own
+        #' (e.g. via \link[connectapi.dag]{task_run}). It evaluates the trigger
+        #' rule, dispatches the render, then polls until the task reaches a
+        #' terminal status. The DAG scheduler does not use this method; it drives
+        #' \code{dispatch()} and \code{poll_once()} directly so independent tasks
+        #' can run concurrently.
     #' @param verbose Should the task print messages as it executes?
-    poll_task = function(verbose = FALSE) {
-      res <- tryCatch(
-        connectapi::poll_task(self$connect_rendering),
-        error = function(e) print(e)
-      )
+    execute = function(verbose = FALSE) {
+      if (!self$can_run()) {
+        self$status <- "Skipped"
+        if (verbose) message("Task Skipped")
+        return(invisible(self))
+      }
 
-      task_successful <- !any(class(res) == "error")
+      self$dispatch(verbose)
 
-      if (task_successful) {
-        self$status <- "Succeeded"
-        if (verbose) message("Task Succeeded")
-      } else {
-        self$status <- "Failed"
-        if (verbose) message("Task Failed")
+      while (!self$status %in% terminal_statuses) {
+        self$poll_once(wait = 1, verbose = verbose)
       }
 
       invisible(self)
@@ -303,7 +394,6 @@ ConnectTask <- R6::R6Class(
     #' @description Returns a logical indicating if this task can run based on the `trigger_rule`
     can_run = function() {
       if (length(self$upstream_tasks) == 0) return(TRUE)
-      terminal_statuses <- c("Succeeded", "Failed", "Skipped")
 
       upstream_statuses <-
         self$linked_tasks_attrs("upstream_tasks", "status") |>

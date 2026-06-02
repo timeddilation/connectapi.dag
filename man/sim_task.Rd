@@ -4,7 +4,12 @@
 \alias{sim_task}
 \title{Simulate a Connect Task}
 \usage{
-sim_task(guid, trigger_rule = "all_success", fail_prob = 0.2)
+sim_task(
+  guid,
+  trigger_rule = "all_success",
+  fail_prob = 0.2,
+  sim_duration = 0L
+)
 }
 \arguments{
 \item{guid}{A scalar character for the guid/name of the task to simulate}
@@ -12,6 +17,10 @@ sim_task(guid, trigger_rule = "all_success", fail_prob = 0.2)
 \item{trigger_rule}{A scalar character that defines state of dependency (upstream) tasks must be in to execute}
 
 \item{fail_prob}{A value between 0 and 1 for the probability of task failure}
+
+\item{sim_duration}{The number of scheduler poll cycles the task should stay Running before finishing.
+Defaults to 0 (finishes immediately). Use a positive value to simulate a long-running render
+when testing concurrent DAG execution.}
 }
 \value{
 A SimTask E6 environment
