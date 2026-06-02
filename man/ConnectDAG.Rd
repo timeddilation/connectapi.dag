@@ -51,6 +51,14 @@ Other R6 classes:
 \item{\code{run_end}}{The time a DAG run ended}
 
 \item{\code{is_complete}}{Indicates if all tasks in this DAG have been evaluated for execution.}
+
+\item{\code{max_concurrent}}{The maximum number of tasks allowed to run simultaneously. Defaults to 1 (sequential).}
+
+\item{\code{poll_interval}}{The seconds the scheduler sleeps between poll cycles while tasks are running.}
+
+\item{\code{task_timeout}}{The maximum seconds a single task may run before being failed. NA disables the timeout.}
+
+\item{\code{dag_timeout}}{The maximum seconds the entire DAG run may take before remaining tasks are failed. NA disables the timeout.}
 }
 \if{html}{\out{</div>}}
 }
@@ -64,6 +72,10 @@ Other R6 classes:
 \item \href{#method-ConnectDAG-remove_task}{\code{ConnectDAG$remove_task()}}
 \item \href{#method-ConnectDAG-set_name}{\code{ConnectDAG$set_name()}}
 \item \href{#method-ConnectDAG-set_connect_pin_name}{\code{ConnectDAG$set_connect_pin_name()}}
+\item \href{#method-ConnectDAG-set_max_concurrent}{\code{ConnectDAG$set_max_concurrent()}}
+\item \href{#method-ConnectDAG-set_task_timeout}{\code{ConnectDAG$set_task_timeout()}}
+\item \href{#method-ConnectDAG-set_dag_timeout}{\code{ConnectDAG$set_dag_timeout()}}
+\item \href{#method-ConnectDAG-set_poll_interval}{\code{ConnectDAG$set_poll_interval()}}
 \item \href{#method-ConnectDAG-plot}{\code{ConnectDAG$plot()}}
 \item \href{#method-ConnectDAG-task_attrs}{\code{ConnectDAG$task_attrs()}}
 \item \href{#method-ConnectDAG-tasks_as_df}{\code{ConnectDAG$tasks_as_df()}}
@@ -79,7 +91,7 @@ Other R6 classes:
 \subsection{Method \code{new()}}{
 Initializes a new ConnectDAG
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$new(name = "new_dag", ...)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$new(name = "new_dag", ..., max_concurrent = 1L)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
@@ -88,6 +100,8 @@ Initializes a new ConnectDAG
 \item{\code{name}}{A personalized name for the DAG}
 
 \item{\code{...}}{Connect Tasks to add to the graph}
+
+\item{\code{max_concurrent}}{The maximum number of tasks allowed to run simultaneously. Defaults to 1 (sequential).}
 }
 \if{html}{\out{</div>}}
 }
@@ -188,6 +202,74 @@ Sets the name used when using \link[connectapi.dag]{dag_write_connect_pin}
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConnectDAG-set_max_concurrent"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectDAG-set_max_concurrent}{}}}
+\subsection{Method \code{set_max_concurrent()}}{
+Sets the maximum number of tasks allowed to run simultaneously when the DAG executes
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$set_max_concurrent(n)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{n}}{A positive integer. 1 runs the DAG sequentially; higher values allow concurrent task execution.}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConnectDAG-set_task_timeout"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectDAG-set_task_timeout}{}}}
+\subsection{Method \code{set_task_timeout()}}{
+Sets how long a single task may run before the scheduler fails it
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$set_task_timeout(seconds)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{seconds}}{A positive number of seconds, or NA to disable the per-task timeout}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConnectDAG-set_dag_timeout"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectDAG-set_dag_timeout}{}}}
+\subsection{Method \code{set_dag_timeout()}}{
+Sets the overall wall-clock limit for an entire DAG run
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$set_dag_timeout(seconds)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{seconds}}{A positive number of seconds, or NA to disable the global timeout}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-ConnectDAG-set_poll_interval"></a>}}
+\if{latex}{\out{\hypertarget{method-ConnectDAG-set_poll_interval}{}}}
+\subsection{Method \code{set_poll_interval()}}{
+Sets the seconds the scheduler sleeps between poll cycles while tasks are running
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$set_poll_interval(seconds)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{seconds}}{A positive number of seconds}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-ConnectDAG-plot"></a>}}
 \if{latex}{\out{\hypertarget{method-ConnectDAG-plot}{}}}
 \subsection{Method \code{plot()}}{
@@ -242,15 +324,17 @@ Returns a data.frame of all tasks added to this DAG
 \if{html}{\out{<a id="method-ConnectDAG-execute"></a>}}
 \if{latex}{\out{\hypertarget{method-ConnectDAG-execute}{}}}
 \subsection{Method \code{execute()}}{
-Executes all tasks, in order, that are added to this DAG
+Executes all tasks added to this DAG, honoring dependencies and trigger rules
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$execute(verbose = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{ConnectDAG$execute(verbose = FALSE, max_concurrent = NULL)}\if{html}{\out{</div>}}
 }
 
 \subsection{Arguments}{
 \if{html}{\out{<div class="arguments">}}
 \describe{
 \item{\code{verbose}}{Should it print messages as it executes tasks?}
+
+\item{\code{max_concurrent}}{An optional override for the DAG's `max_concurrent` field for this run only}
 }
 \if{html}{\out{</div>}}
 }

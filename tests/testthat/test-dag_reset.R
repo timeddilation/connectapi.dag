@@ -40,4 +40,27 @@ test_that("all tasks reset to pending and envs are cleared, and is_complete is F
   ## no tasks have a task_rendering
   connect_renderings <- sapply(dag0$tasks, {\(task) task$connect_rendering})
   expect_true(all(is.na(connect_renderings)))
+
+  ## poll state is cleared on every task
+  expect_true(all(vapply(dag0$tasks, {\(task) task$poll_first}, integer(1)) == 0L))
+  expect_true(all(vapply(dag0$tasks, {\(task) task$poll_error_count}, integer(1)) == 0L))
+  expect_true(all(vapply(dag0$tasks, {\(task) is.na(task$poll_output)}, logical(1))))
+  expect_true(all(vapply(dag0$tasks, {\(task) is.na(task$poll_task_id)}, logical(1))))
+})
+
+test_that("reset returns a Running task to Pending", {
+  task0 <- sim_task("task0", fail_prob = 0, sim_duration = 5)
+  task1 <- sim_task("task1", fail_prob = 0)
+  task0 |> set_downstream(task1)
+
+  dag0 <- connect_dag(task0, task1)
+
+  # dispatch task0 directly so it is left in a Running state mid-flight
+  task0$dispatch()
+  expect_equal(task0$status, "Running")
+
+  dag_reset(dag0)
+  expect_equal(task0$status, "Pending")
+  expect_true(is.na(task0$sim_will_fail))
+  expect_true(is.na(task0$sim_polls_remaining))
 })

@@ -74,6 +74,38 @@ test_that("verbose task execution prints skipped message", {
   ) |> suppressMessages()
 })
 
+test_that("sim_duration = 0 finishes immediately on dispatch", {
+  sim_task0 <- sim_task("foo", fail_prob = 0, sim_duration = 0)
+  sim_task0$dispatch()
+
+  expect_equal(sim_task0$status, "Succeeded")
+})
+
+test_that("sim_duration > 0 stays Running until enough poll cycles elapse", {
+  sim_task0 <- sim_task("foo", fail_prob = 0, sim_duration = 2)
+
+  sim_task0$dispatch()
+  expect_equal(sim_task0$status, "Running")
+
+  sim_task0$poll_once()
+  expect_equal(sim_task0$status, "Running")
+
+  sim_task0$poll_once()
+  expect_equal(sim_task0$status, "Succeeded")
+})
+
+test_that("dispatch decides outcome deterministically for fail_prob in {0,1}", {
+  succeed <- sim_task("foo", fail_prob = 0, sim_duration = 1)
+  succeed$dispatch()
+  succeed$poll_once()
+  expect_equal(succeed$status, "Succeeded")
+
+  fail <- sim_task("bar", fail_prob = 1, sim_duration = 1)
+  fail$dispatch()
+  fail$poll_once()
+  expect_equal(fail$status, "Failed")
+})
+
 test_that("attempt to plot without linked tasks prints message and returns NULL", {
   sim_task0 <- sim_task("task0")
 

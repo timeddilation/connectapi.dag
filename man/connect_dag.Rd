@@ -4,12 +4,16 @@
 \alias{connect_dag}
 \title{Create a DAG to orchestrate Connect Tasks}
 \usage{
-connect_dag(..., name = "new_dag")
+connect_dag(..., name = "new_dag", max_concurrent = 1L)
 }
 \arguments{
 \item{...}{Connect Tasks to add to the graph}
 
 \item{name}{A personalized name for the DAG}
+
+\item{max_concurrent}{The maximum number of tasks allowed to run simultaneously.
+Defaults to 1 (sequential execution). Higher values allow independent tasks to
+render concurrently on Posit Connect.}
 }
 \value{
 A ConnectDAG R6 environment

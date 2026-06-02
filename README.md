@@ -241,12 +241,56 @@ dag_run(my_dag)
 ```
 
 After it has ran, you can `plot()` the DAG again to show task statuses.
-Tasks have 3 possible statuses after DAG runs; *Succeeded*, *Failed*,
+Tasks have 3 terminal statuses after DAG runs; *Succeeded*, *Failed*,
 and *Skipped*. A task will be skipped if it’s *trigger_rule* requirement
-is not met.
+is not met. While a task is rendering it is shown as *Running*.
 
 If you ever run into issues executing a DAG, it may be useful to plot
 the DAG to see where the issue arrised.
+
+#### Concurrent Execution
+
+Because the actual rendering work happens on the Posit Connect server,
+a DAG can dispatch several independent tasks at once and let them render
+in parallel, only orchestrating from your R session. By default a DAG
+runs one task at a time (`max_concurrent = 1`), which is fully
+sequential. Raise `max_concurrent` to allow independent branches of the
+DAG to run simultaneously, which can substantially reduce the wall-clock
+time of wide DAGs.
+
+The concurrency limit is stored on the DAG, so it is preserved when the
+DAG is saved as a pin and re-run by a scheduled job. You can set it when
+creating the DAG, change it later, or override it for a single run.
+
+``` r
+# set when creating the DAG
+my_dag <- connect_dag(task0, task1, task2, max_concurrent = 4)
+
+# or change it later (persisted on the DAG)
+dag_set_max_concurrent(my_dag, 4)
+
+# or override just for this run
+dag_run(my_dag, max_concurrent = 4)
+```
+
+Dependencies and *trigger_rules* are always respected: a task is only
+ever evaluated once all of its immediate upstream tasks have reached a
+terminal status, so concurrent runs produce the same task outcomes as a
+sequential run — only faster.
+
+#### Timeouts
+
+Because a DAG run waits on renders completing in Connect, you can guard
+against a render that never finishes with two optional timeouts. A
+per-task timeout fails any single task that runs longer than the limit,
+while a global timeout caps the entire run. In both cases the offending
+task is marked *Failed* and the run continues or stops, guaranteeing the
+DAG terminates. Both are disabled by default.
+
+``` r
+dag_set_task_timeout(my_dag, 600)   # fail any task running longer than 10 min
+dag_set_dag_timeout(my_dag, 3600)   # stop the whole run after 1 hour
+```
 
 ### Storing DAGs
 
@@ -319,10 +363,3 @@ A Shiny application may be built to list all published DAGs, view the
 history of DAG executions, plot them, re-run them, and provide other
 administration features. This shiny app may be ran locally, in
 workbench, or as a deployed app on Posit Connect.
-
-Currently, tasks in a DAG cannot be run concurrently, even when it
-should be possible to be running multiple tasks at the same time. This
-is a major optimization that can be made, but requires a lot of thought
-and planning to execute correctly and give the user proper control of
-that behavior. When this tool becomes more mature, this kind of feature
-will be added.
