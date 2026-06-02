@@ -7,7 +7,12 @@ the task to fail. For a full list of available trigger rules, refer to
 ## Usage
 
 ``` r
-sim_task(guid, trigger_rule = "all_success", fail_prob = 0.2)
+sim_task(
+  guid,
+  trigger_rule = "all_success",
+  fail_prob = 0.2,
+  sim_duration = 0L
+)
 ```
 
 ## Arguments
@@ -24,6 +29,13 @@ sim_task(guid, trigger_rule = "all_success", fail_prob = 0.2)
 - fail_prob:
 
   A value between 0 and 1 for the probability of task failure
+
+- sim_duration:
+
+  The number of scheduler poll cycles the task should stay Running
+  before finishing. Defaults to 0 (finishes immediately). Use a positive
+  value to simulate a long-running render when testing concurrent DAG
+  execution.
 
 ## Value
 

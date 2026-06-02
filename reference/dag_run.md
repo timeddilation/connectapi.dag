@@ -1,12 +1,14 @@
 # Run orchestrated ConnectTasks
 
-Executes Posit Connect Tasks sequentially, ensuring dependency tasks run
-before dependents.
+Executes Posit Connect Tasks, ensuring dependency tasks run before
+dependents. Independent tasks may run concurrently when the DAG's
+\`max_concurrent\` is greater than 1 (see
+[dag_set_max_concurrent](https://timeddilation.github.io/connectapi.dag/reference/dag_set_max_concurrent.md)).
 
 ## Usage
 
 ``` r
-dag_run(env, verbose = FALSE)
+dag_run(env, verbose = FALSE, max_concurrent = NULL)
 ```
 
 ## Arguments
@@ -19,6 +21,11 @@ dag_run(env, verbose = FALSE)
 - verbose:
 
   A boolean, when TRUE prints messages to console as tasks execute
+
+- max_concurrent:
+
+  An optional override for the DAG's \`max_concurrent\` field, applied
+  to this run only
 
 ## Examples
 

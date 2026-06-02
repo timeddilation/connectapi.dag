@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Connect Tasks • connectapi.dag</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Connect Tasks">
 </head>
@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">connectapi.dag</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -36,6 +36,7 @@
 <li><a class="dropdown-item" href="../articles/connect-tasks.html">Connect Tasks</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -341,6 +342,85 @@ to define a random chance for the task to fail. The value is set between
 <p>Tasks with a random chance to fail are useful when you want to see
 various scenarios of a DAG run. Outside of that use case, however, are
 otherwise useless.</p>
+<p>Simulated tasks also accept a <code>sim_duration</code> parameter,
+given in scheduler poll cycles. By default it is <code>0</code>, meaning
+a simulated task finishes immediately. Giving it a positive value makes
+the task stay in the <em>Running</em> status for that many cycles, which
+is helpful for observing concurrent execution (covered next).</p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">slow_sim</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_task.html">sim_task</a></span><span class="op">(</span><span class="st">"slow_task"</span>, fail_prob <span class="op">=</span> <span class="fl">0</span>, sim_duration <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="concurrency-and-timeouts">Concurrency and Timeouts<a class="anchor" aria-label="anchor" href="#concurrency-and-timeouts"></a>
+</h2>
+<p>When a DAG runs, the heavy lifting — rendering the content — happens
+on the Posit Connect server, not in your R session. Your session only
+dispatches renders and polls them for completion. This means a single R
+session can keep several renders in flight at once, letting independent
+branches of a DAG run in parallel.</p>
+<p>By default a DAG runs one task at a time. This is controlled by the
+DAG’s <code>max_concurrent</code> setting, which defaults to
+<code>1</code> (fully sequential). Raising it allows that many tasks to
+run simultaneously. Consider a DAG that extracts data, produces two
+independent reports, then notifies once both are done:</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">extract</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_task.html">sim_task</a></span><span class="op">(</span><span class="st">"extract"</span>, fail_prob <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span><span class="va">report_a</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_task.html">sim_task</a></span><span class="op">(</span><span class="st">"report_a"</span>, fail_prob <span class="op">=</span> <span class="fl">0</span>, sim_duration <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">report_b</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_task.html">sim_task</a></span><span class="op">(</span><span class="st">"report_b"</span>, fail_prob <span class="op">=</span> <span class="fl">0</span>, sim_duration <span class="op">=</span> <span class="fl">3</span><span class="op">)</span></span>
+<span><span class="va">notify</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_task.html">sim_task</a></span><span class="op">(</span><span class="st">"notify"</span>, fail_prob <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">extract</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/set_downstream.html">set_downstream</a></span><span class="op">(</span><span class="va">report_a</span>, <span class="va">report_b</span><span class="op">)</span></span>
+<span><span class="va">notify</span> <span class="op">|&gt;</span> <span class="fu"><a href="../reference/set_upstream.html">set_upstream</a></span><span class="op">(</span><span class="va">report_a</span>, <span class="va">report_b</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">parallel_dag</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/connect_dag.html">connect_dag</a></span><span class="op">(</span></span>
+<span>  <span class="va">extract</span>, <span class="va">report_a</span>, <span class="va">report_b</span>, <span class="va">notify</span>,</span>
+<span>  name <span class="op">=</span> <span class="st">"parallel_dag"</span>,</span>
+<span>  max_concurrent <span class="op">=</span> <span class="fl">2</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/dag_run.html">dag_run</a></span><span class="op">(</span><span class="va">parallel_dag</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/dag_as_df.html">dag_as_df</a></span><span class="op">(</span><span class="va">parallel_dag</span><span class="op">)</span></span>
+<span><span class="co">#&gt;                 guid     name    status trigger_rule exec_order</span></span>
+<span><span class="co">#&gt; 1  simulated_extract  extract Succeeded  all_success          1</span></span>
+<span><span class="co">#&gt; 3 simulated_report_a report_a Succeeded  all_success          2</span></span>
+<span><span class="co">#&gt; 4 simulated_report_b report_b Succeeded  all_success          3</span></span>
+<span><span class="co">#&gt; 2   simulated_notify   notify Succeeded  all_success          4</span></span></code></pre></div>
+<p>With <code>max_concurrent = 2</code>, the two reports render at the
+same time rather than one after the other. You can set the limit when
+creating the DAG as above, change it afterwards, or override it for a
+single run.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># change the persisted setting on the DAG</span></span>
+<span><span class="fu"><a href="../reference/dag_set_max_concurrent.html">dag_set_max_concurrent</a></span><span class="op">(</span><span class="va">parallel_dag</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># or override only for this run</span></span>
+<span><span class="fu"><a href="../reference/dag_run.html">dag_run</a></span><span class="op">(</span><span class="va">parallel_dag</span>, max_concurrent <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
+<p>Because the setting lives on the DAG, it is preserved when the DAG is
+saved as a pin and re-run by a scheduled job.</p>
+<p>Concurrency never changes the <em>outcome</em> of a DAG, only its
+speed. A task is still only evaluated once all of its immediate upstream
+tasks have reached a terminal status, so the <em>trigger_rule</em>
+always sees the final upstream statuses. A concurrent run produces
+exactly the same task statuses as a sequential one.</p>
+<div class="section level3">
+<h3 id="timeouts">Timeouts<a class="anchor" aria-label="anchor" href="#timeouts"></a>
+</h3>
+<p>Since a DAG run waits on renders finishing in Connect, you can
+protect against a render that never completes using two optional
+timeouts. A <em>task timeout</em> fails any single task that runs longer
+than the given number of seconds, while a <em>DAG timeout</em> caps the
+entire run. In either case the offending task is marked <em>Failed</em>
+and the run proceeds or stops, guaranteeing the DAG always terminates.
+Both are disabled by default.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># fail any single task that runs longer than 10 minutes</span></span>
+<span><span class="fu"><a href="../reference/dag_set_task_timeout.html">dag_set_task_timeout</a></span><span class="op">(</span><span class="va">parallel_dag</span>, <span class="fl">600</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># stop the whole run if it takes longer than 1 hour</span></span>
+<span><span class="fu"><a href="../reference/dag_set_dag_timeout.html">dag_set_dag_timeout</a></span><span class="op">(</span><span class="va">parallel_dag</span>, <span class="fl">3600</span><span class="op">)</span></span></code></pre></div>
+<p>Like <code>max_concurrent</code>, both timeouts are stored on the DAG
+and persist with it.</p>
+</div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

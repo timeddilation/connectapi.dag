@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Task Orchestration for Posit Connect • connectapi.dag</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Task Orchestration for Posit Connect">
 <meta name="description" content="Design task orchestration for jobs in Posit Connect. Use semantics similar to AirFlow, but specifically for Connect and written in R.">
@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">connectapi.dag</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.5</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -38,6 +38,7 @@
 <li><a class="dropdown-item" href="articles/connect-tasks.html">Connect Tasks</a></li>
   </ul>
 </li>
+<li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
 <li class="nav-item"><form class="form-inline" role="search">
@@ -198,8 +199,32 @@
 <p>Once you have a valid DAG, you can run it simply with the <code>dag_run</code> function. Calling this from a local environment will execute the tasks in the DAG. However, this does not yet schedule the DAG as a whole. Keep reading below for deployment options.</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/dag_run.html">dag_run</a></span><span class="op">(</span><span class="va">my_dag</span><span class="op">)</span></span></code></pre></div>
-<p>After it has ran, you can <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> the DAG again to show task statuses. Tasks have 3 possible statuses after DAG runs; <em>Succeeded</em>, <em>Failed</em>, and <em>Skipped</em>. A task will be skipped if it’s <em>trigger_rule</em> requirement is not met.</p>
+<p>After it has ran, you can <code><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot()</a></code> the DAG again to show task statuses. Tasks have 3 terminal statuses after DAG runs; <em>Succeeded</em>, <em>Failed</em>, and <em>Skipped</em>. A task will be skipped if it’s <em>trigger_rule</em> requirement is not met. While a task is rendering it is shown as <em>Running</em>.</p>
 <p>If you ever run into issues executing a DAG, it may be useful to plot the DAG to see where the issue arrised.</p>
+<div class="section level4">
+<h4 id="concurrent-execution">Concurrent Execution<a class="anchor" aria-label="anchor" href="#concurrent-execution"></a>
+</h4>
+<p>Because the actual rendering work happens on the Posit Connect server, a DAG can dispatch several independent tasks at once and let them render in parallel, only orchestrating from your R session. By default a DAG runs one task at a time (<code>max_concurrent = 1</code>), which is fully sequential. Raise <code>max_concurrent</code> to allow independent branches of the DAG to run simultaneously, which can substantially reduce the wall-clock time of wide DAGs.</p>
+<p>The concurrency limit is stored on the DAG, so it is preserved when the DAG is saved as a pin and re-run by a scheduled job. You can set it when creating the DAG, change it later, or override it for a single run.</p>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># set when creating the DAG</span></span>
+<span><span class="va">my_dag</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/connect_dag.html">connect_dag</a></span><span class="op">(</span><span class="va">task0</span>, <span class="va">task1</span>, <span class="va">task2</span>, max_concurrent <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># or change it later (persisted on the DAG)</span></span>
+<span><span class="fu"><a href="reference/dag_set_max_concurrent.html">dag_set_max_concurrent</a></span><span class="op">(</span><span class="va">my_dag</span>, <span class="fl">4</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># or override just for this run</span></span>
+<span><span class="fu"><a href="reference/dag_run.html">dag_run</a></span><span class="op">(</span><span class="va">my_dag</span>, max_concurrent <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span></code></pre></div>
+<p>Dependencies and <em>trigger_rules</em> are always respected: a task is only ever evaluated once all of its immediate upstream tasks have reached a terminal status, so concurrent runs produce the same task outcomes as a sequential run — only faster.</p>
+</div>
+<div class="section level4">
+<h4 id="timeouts">Timeouts<a class="anchor" aria-label="anchor" href="#timeouts"></a>
+</h4>
+<p>Because a DAG run waits on renders completing in Connect, you can guard against a render that never finishes with two optional timeouts. A per-task timeout fails any single task that runs longer than the limit, while a global timeout caps the entire run. In both cases the offending task is marked <em>Failed</em> and the run continues or stops, guaranteeing the DAG terminates. Both are disabled by default.</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="reference/dag_set_task_timeout.html">dag_set_task_timeout</a></span><span class="op">(</span><span class="va">my_dag</span>, <span class="fl">600</span><span class="op">)</span>   <span class="co"># fail any task running longer than 10 min</span></span>
+<span><span class="fu"><a href="reference/dag_set_dag_timeout.html">dag_set_dag_timeout</a></span><span class="op">(</span><span class="va">my_dag</span>, <span class="fl">3600</span><span class="op">)</span>   <span class="co"># stop the whole run after 1 hour</span></span></code></pre></div>
+</div>
 </div>
 <div class="section level3">
 <h3 id="storing-dags">Storing DAGs<a class="anchor" aria-label="anchor" href="#storing-dags"></a>
@@ -207,7 +232,7 @@
 <p>Once a DAG is defined, you will want to save it to persistent storage so you can later retrieve it to run it again. You can use any method you want for this portion, as you can simply save the DAG environment with <code>saveRDS</code>. For instance, if you want to use S3 for your persistent storage and versioning, you can use the <code>paws.storage</code> package instead. Or, you can save the DAG as an RDS object in your project’s repository, and include it in the bundle you publish to Posit Connect.</p>
 <p>However, since this package is explicitly for Posit Connect, integration to use Posit Connect persistent storage with the <code>pins</code> package is already built-in.</p>
 <p>The <code><a href="reference/dag_write_connect_pin.html">dag_write_connect_pin()</a></code> function handles most of the work for you. The DAG environment has a <code>pin_name</code> attribute, which can be changed with the <code><a href="reference/dag_set_pin_name.html">dag_set_pin_name()</a></code> function.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/dag_write_connect_pin.html">dag_write_connect_pin</a></span><span class="op">(</span><span class="va">my_dag</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -215,7 +240,7 @@
 </h3>
 <p>Scheduling a DAG works the same way as scheduling any other job on Posit Connect. You must publish a bundle that can be rendered (Rmd, quarto, jupyter, etc.) that will read the DAG environment and call the <code>run_dag()</code> method on it.</p>
 <p>This package simplifies the process if you’re also using pins on Connect for persistent storage. After saving the DAG to Connect using pins, you can use <code><a href="reference/dag_write_rmd.html">dag_write_rmd()</a></code> function to generate the Rmd file needed to execute and schedule the DAG.</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/dag_write_rmd.html">dag_write_rmd</a></span><span class="op">(</span><span class="va">my_dag</span><span class="op">)</span></span></code></pre></div>
 <p>Note that this function requires the original DAG environment. The DAG contains the name of the pin on Posit Connect. This function will first validate the pin exists on your Posit Connect Server. Once validated, it will compose the entire job that you can then publish and schedule.</p>
 <p>Once published and scheduled, you can remove any schedules you have on existing tasks within your DAG.</p>
@@ -232,7 +257,6 @@
 <h2 id="future-plans">Future Plans<a class="anchor" aria-label="anchor" href="#future-plans"></a>
 </h2>
 <p>A Shiny application may be built to list all published DAGs, view the history of DAG executions, plot them, re-run them, and provide other administration features. This shiny app may be ran locally, in workbench, or as a deployed app on Posit Connect.</p>
-<p>Currently, tasks in a DAG cannot be run concurrently, even when it should be possible to be running multiple tasks at the same time. This is a major optimization that can be made, but requires a lot of thought and planning to execute correctly and give the user proper control of that behavior. When this tool becomes more mature, this kind of feature will be added.</p>
 </div>
 </div>
 

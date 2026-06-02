@@ -7,7 +7,7 @@ DAG. DAGs may then be executed, which will orchestrate connect tasks.
 ## Usage
 
 ``` r
-connect_dag(..., name = "new_dag")
+connect_dag(..., name = "new_dag", max_concurrent = 1L)
 ```
 
 ## Arguments
@@ -19,6 +19,12 @@ connect_dag(..., name = "new_dag")
 - name:
 
   A personalized name for the DAG
+
+- max_concurrent:
+
+  The maximum number of tasks allowed to run simultaneously. Defaults to
+  1 (sequential execution). Higher values allow independent tasks to
+  render concurrently on Posit Connect.
 
 ## Value
 

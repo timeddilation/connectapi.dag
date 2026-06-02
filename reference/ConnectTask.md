@@ -6,6 +6,7 @@ Class representing a Task published to Connect
 
 ## Usage
 
+
     task <- ConnectTask$new(
       guid = "1f6c9a82-0177-47fa-a27c-be090b39dca7",
       trigger_rule = "always",
@@ -38,8 +39,8 @@ Other R6 classes:
 
 - `status`:
 
-  The status of this task. Possible statuses: Pending, Succeeded,
-  Failed, Skipped
+  The status of this task. Possible statuses: Pending, Running,
+  Succeeded, Failed, Skipped
 
 - `trigger_rule`:
 
@@ -80,6 +81,28 @@ Other R6 classes:
 
   The type of content being rendered on Posit Connect
 
+- `poll_task_id`:
+
+  The task id of the active rendering, cached when the task is
+  dispatched
+
+- `poll_first`:
+
+  The log cursor used for incremental render output when polling
+
+- `poll_output`:
+
+  The accumulated render log output collected while polling
+
+- `poll_error_count`:
+
+  The count of consecutive transient errors encountered while polling
+
+- `dispatch_time`:
+
+  The time the task's render was dispatched, used to enforce task
+  timeouts
+
 ## Methods
 
 ### Public methods
@@ -104,9 +127,11 @@ Other R6 classes:
 
 - [`ConnectTask$linked_tasks_attrs()`](#method-ConnectTask-linked_tasks_attrs)
 
-- [`ConnectTask$execute()`](#method-ConnectTask-execute)
+- [`ConnectTask$dispatch()`](#method-ConnectTask-dispatch)
 
-- [`ConnectTask$poll_task()`](#method-ConnectTask-poll_task)
+- [`ConnectTask$poll_once()`](#method-ConnectTask-poll_once)
+
+- [`ConnectTask$execute()`](#method-ConnectTask-execute)
 
 - [`ConnectTask$can_run()`](#method-ConnectTask-can_run)
 
@@ -270,13 +295,22 @@ Returns a list of the linked tasks' attributes
 
 ------------------------------------------------------------------------
 
-### Method `execute()`
+### Method `dispatch()`
 
-Executes a ConnectTask on a remote Connect Server
+Starts the content render on Connect without waiting for it to finish.
+
+This is the non-blocking half of executing a task. It requests the
+default variant and kicks off a render, transitioning the task to the
+"Running" status and caching the task id so the render can be polled
+later with `poll_once()`. Unlike a direct `execute()` call, a render
+that cannot be started does not raise an error; the task is marked
+"Failed" and the error message is captured in `poll_output`. This lets
+the DAG scheduler dispatch many tasks without one failure aborting the
+whole run.
 
 #### Usage
 
-    ConnectTask$execute(verbose = FALSE)
+    ConnectTask$dispatch(verbose = FALSE)
 
 #### Arguments
 
@@ -286,13 +320,55 @@ Executes a ConnectTask on a remote Connect Server
 
 ------------------------------------------------------------------------
 
-### Method `poll_task()`
+### Method `poll_once()`
 
-A wrapper around connectapi::poll_task for this task's execution
+Polls the active render once, without blocking on completion.
+
+Reads the current state of the render directly from Connect, advancing
+the log cursor and collecting any new output. When the render finishes,
+the task transitions to "Succeeded" (exit code 0) or "Failed". A render
+failure reported by Connect is terminal. A thrown error (e.g. a
+transient network issue) is not immediately fatal: it increments
+`poll_error_count`, and the task is only marked "Failed" after
+`error_threshold` consecutive errors.
 
 #### Usage
 
-    ConnectTask$poll_task(verbose = FALSE)
+    ConnectTask$poll_once(wait = 0, verbose = FALSE, error_threshold = 3L)
+
+#### Arguments
+
+- `wait`:
+
+  The seconds Connect should hold the request waiting for progress.
+  Defaults to 0 (return immediately).
+
+- `verbose`:
+
+  Should the task print render output as it polls?
+
+- `error_threshold`:
+
+  Consecutive transient poll errors tolerated before the task is failed.
+
+------------------------------------------------------------------------
+
+### Method `execute()`
+
+Executes a ConnectTask on a remote Connect Server, blocking until it
+finishes.
+
+This is a convenience wrapper used for running a single task on its own
+(e.g. via
+[task_run](https://timeddilation.github.io/connectapi.dag/reference/task_run.md)).
+It evaluates the trigger rule, dispatches the render, then polls until
+the task reaches a terminal status. The DAG scheduler does not use this
+method; it drives `dispatch()` and `poll_once()` directly so independent
+tasks can run concurrently.
+
+#### Usage
+
+    ConnectTask$execute(verbose = FALSE)
 
 #### Arguments
 

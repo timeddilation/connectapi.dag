@@ -26,10 +26,18 @@
   : Reset a DAG to its initial state
 - [`dag_run()`](https://timeddilation.github.io/connectapi.dag/reference/dag_run.md)
   : Run orchestrated ConnectTasks
+- [`dag_set_dag_timeout()`](https://timeddilation.github.io/connectapi.dag/reference/dag_set_dag_timeout.md)
+  : Set the overall timeout for a DAG run
+- [`dag_set_max_concurrent()`](https://timeddilation.github.io/connectapi.dag/reference/dag_set_max_concurrent.md)
+  : Set the maximum number of tasks a DAG runs concurrently
 - [`dag_set_name()`](https://timeddilation.github.io/connectapi.dag/reference/dag_set_name.md)
   : Set the name of a DAG
 - [`dag_set_pin_name()`](https://timeddilation.github.io/connectapi.dag/reference/dag_set_pin_name.md)
   : Sets the Pin name for Connect Board
+- [`dag_set_poll_interval()`](https://timeddilation.github.io/connectapi.dag/reference/dag_set_poll_interval.md)
+  : Set the scheduler poll interval for a DAG
+- [`dag_set_task_timeout()`](https://timeddilation.github.io/connectapi.dag/reference/dag_set_task_timeout.md)
+  : Set the per-task timeout for a DAG
 - [`dag_validate()`](https://timeddilation.github.io/connectapi.dag/reference/dag_validate.md)
   : Validates a ConnectDAG is complete and can be executed
 - [`dag_write_connect_pin()`](https://timeddilation.github.io/connectapi.dag/reference/dag_write_connect_pin.md)

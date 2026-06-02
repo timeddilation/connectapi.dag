@@ -6,6 +6,7 @@ Class representing a DAG of Connect Tasks
 
 ## Usage
 
+
     dag <- ConnectDAG$new(name = "dag")
 
 ## Details
@@ -62,6 +63,26 @@ Other R6 classes:
 
   Indicates if all tasks in this DAG have been evaluated for execution.
 
+- `max_concurrent`:
+
+  The maximum number of tasks allowed to run simultaneously. Defaults to
+  1 (sequential).
+
+- `poll_interval`:
+
+  The seconds the scheduler sleeps between poll cycles while tasks are
+  running.
+
+- `task_timeout`:
+
+  The maximum seconds a single task may run before being failed. NA
+  disables the timeout.
+
+- `dag_timeout`:
+
+  The maximum seconds the entire DAG run may take before remaining tasks
+  are failed. NA disables the timeout.
+
 ## Methods
 
 ### Public methods
@@ -79,6 +100,14 @@ Other R6 classes:
 - [`ConnectDAG$set_name()`](#method-ConnectDAG-set_name)
 
 - [`ConnectDAG$set_connect_pin_name()`](#method-ConnectDAG-set_connect_pin_name)
+
+- [`ConnectDAG$set_max_concurrent()`](#method-ConnectDAG-set_max_concurrent)
+
+- [`ConnectDAG$set_task_timeout()`](#method-ConnectDAG-set_task_timeout)
+
+- [`ConnectDAG$set_dag_timeout()`](#method-ConnectDAG-set_dag_timeout)
+
+- [`ConnectDAG$set_poll_interval()`](#method-ConnectDAG-set_poll_interval)
 
 - [`ConnectDAG$plot()`](#method-ConnectDAG-plot)
 
@@ -102,7 +131,7 @@ Initializes a new ConnectDAG
 
 #### Usage
 
-    ConnectDAG$new(name = "new_dag", ...)
+    ConnectDAG$new(name = "new_dag", ..., max_concurrent = 1L)
 
 #### Arguments
 
@@ -113,6 +142,11 @@ Initializes a new ConnectDAG
 - `...`:
 
   Connect Tasks to add to the graph
+
+- `max_concurrent`:
+
+  The maximum number of tasks allowed to run simultaneously. Defaults to
+  1 (sequential).
 
 ------------------------------------------------------------------------
 
@@ -207,6 +241,73 @@ Sets the name used when using
 
 ------------------------------------------------------------------------
 
+### Method `set_max_concurrent()`
+
+Sets the maximum number of tasks allowed to run simultaneously when the
+DAG executes
+
+#### Usage
+
+    ConnectDAG$set_max_concurrent(n)
+
+#### Arguments
+
+- `n`:
+
+  A positive integer. 1 runs the DAG sequentially; higher values allow
+  concurrent task execution.
+
+------------------------------------------------------------------------
+
+### Method `set_task_timeout()`
+
+Sets how long a single task may run before the scheduler fails it
+
+#### Usage
+
+    ConnectDAG$set_task_timeout(seconds)
+
+#### Arguments
+
+- `seconds`:
+
+  A positive number of seconds, or NA to disable the per-task timeout
+
+------------------------------------------------------------------------
+
+### Method `set_dag_timeout()`
+
+Sets the overall wall-clock limit for an entire DAG run
+
+#### Usage
+
+    ConnectDAG$set_dag_timeout(seconds)
+
+#### Arguments
+
+- `seconds`:
+
+  A positive number of seconds, or NA to disable the global timeout
+
+------------------------------------------------------------------------
+
+### Method `set_poll_interval()`
+
+Sets the seconds the scheduler sleeps between poll cycles while tasks
+are running
+
+#### Usage
+
+    ConnectDAG$set_poll_interval(seconds)
+
+#### Arguments
+
+- `seconds`:
+
+  A positive number of seconds
+
+------------------------------------------------------------------------
+
 ### Method [`plot()`](https://rdrr.io/r/graphics/plot.default.html)
 
 Prints a plotly graph of the DAG's graph
@@ -257,17 +358,23 @@ Returns a data.frame of all tasks added to this DAG
 
 ### Method `execute()`
 
-Executes all tasks, in order, that are added to this DAG
+Executes all tasks added to this DAG, honoring dependencies and trigger
+rules
 
 #### Usage
 
-    ConnectDAG$execute(verbose = FALSE)
+    ConnectDAG$execute(verbose = FALSE, max_concurrent = NULL)
 
 #### Arguments
 
 - `verbose`:
 
   Should it print messages as it executes tasks?
+
+- `max_concurrent`:
+
+  An optional override for the DAG's \`max_concurrent\` field for this
+  run only
 
 ------------------------------------------------------------------------
 

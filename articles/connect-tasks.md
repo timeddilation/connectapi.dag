@@ -29,6 +29,7 @@ through, we’ll use simulated tasks instead, and give them human-friendly
 names for simplicity’s sake.
 
 ``` r
+
 library(connectapi.dag)
 notify_task <- connect_task("email_stakeholder", simulated = TRUE)
 ```
@@ -38,6 +39,7 @@ it to execute the task. This may be envoked from an existing job, from a
 Shiny application, or from an API.
 
 ``` r
+
 some_condition <- TRUE
 if (some_condition) task_run(notify_task, verbose = TRUE)
 #> Starting task email_stakeholder
@@ -49,6 +51,7 @@ if (some_condition) task_run(notify_task, verbose = TRUE)
 All connect tasks have a status. They may be accessed directly:
 
 ``` r
+
 notify_task$status
 #> [1] "Succeeded"
 ```
@@ -102,6 +105,7 @@ Tho define these dependency chains, this package offers the functions
 tasks and dependent (run after) tasks respectively.
 
 ``` r
+
 analysis_task <- connect_task("analysis", simulated = TRUE)
 
 notify_task |> set_upstream(analysis_task)
@@ -113,6 +117,7 @@ on any of the tasks. Note the the `plot` function on a task will only
 show the immediate dependencies and dependents.
 
 ``` r
+
 plot(notify_task)
 ```
 
@@ -123,6 +128,7 @@ offers a simplified interface to express these dependency chains and
 ensure their consistency.
 
 ``` r
+
 extract_task <- connect_task("extract", simulated = TRUE)
 analysis_task <- connect_task("analysis", simulated = TRUE)
 notify_task <- connect_task("email_stakeholder", simulated = TRUE)
@@ -149,6 +155,7 @@ modelling task is complete to update the model hosted in our plumber
 API.
 
 ``` r
+
 reload_api_model <- connect_task("deploy_model", simulated = TRUE)
 reload_api_model |> set_upstream(model_task)
 
@@ -162,6 +169,7 @@ extract nor the notify task. Only plotting DAGs will display the full
 dependency chain. Refer to the Connect DAGs vignette for more details.
 
 ``` r
+
 my_dag <- connect_dag(extract_task, analysis_task, notify_task,
                       model_task, reload_api_model)
 
@@ -201,6 +209,7 @@ changed when defining the task. For example, maybe we need to notify the
 data provider when there was an issue with the extraction step.
 
 ``` r
+
 notify_vendor <- connect_task(
   "notify_vendor",
   trigger_rule = "all_failed",
@@ -237,6 +246,7 @@ and `pins`.
     CONNECT_API_KEY = your-api-key
 
 ``` r
+
 task0 <- connect_task("be4e0fe3-ab35-4f07-bc8e-cd5d4a7b8452", simulated = TRUE)
 ```
 
@@ -244,6 +254,7 @@ Of course, you may define your own options to these parameters as you
 desire.
 
 ``` r
+
 task0 <- connect_task(
   "be4e0fe3-ab35-4f07-bc8e-cd5d4a7b8452",
   server = Sys.getenv("CONNECT_HOST"),
@@ -295,9 +306,104 @@ allows you to define a random chance for the task to fail. The value is
 set between 0 and 1, where 0 is always fail, and 1 is always succeed.
 
 ``` r
+
 connect_sim <- sim_task("some_task", fail_prob = 0.5)
 ```
 
 Tasks with a random chance to fail are useful when you want to see
 various scenarios of a DAG run. Outside of that use case, however, are
 otherwise useless.
+
+Simulated tasks also accept a `sim_duration` parameter, given in
+scheduler poll cycles. By default it is `0`, meaning a simulated task
+finishes immediately. Giving it a positive value makes the task stay in
+the *Running* status for that many cycles, which is helpful for
+observing concurrent execution (covered next).
+
+``` r
+
+slow_sim <- sim_task("slow_task", fail_prob = 0, sim_duration = 3)
+```
+
+## Concurrency and Timeouts
+
+When a DAG runs, the heavy lifting — rendering the content — happens on
+the Posit Connect server, not in your R session. Your session only
+dispatches renders and polls them for completion. This means a single R
+session can keep several renders in flight at once, letting independent
+branches of a DAG run in parallel.
+
+By default a DAG runs one task at a time. This is controlled by the
+DAG’s `max_concurrent` setting, which defaults to `1` (fully
+sequential). Raising it allows that many tasks to run simultaneously.
+Consider a DAG that extracts data, produces two independent reports,
+then notifies once both are done:
+
+``` r
+
+extract <- sim_task("extract", fail_prob = 0)
+report_a <- sim_task("report_a", fail_prob = 0, sim_duration = 3)
+report_b <- sim_task("report_b", fail_prob = 0, sim_duration = 3)
+notify <- sim_task("notify", fail_prob = 0)
+
+extract |> set_downstream(report_a, report_b)
+notify |> set_upstream(report_a, report_b)
+
+parallel_dag <- connect_dag(
+  extract, report_a, report_b, notify,
+  name = "parallel_dag",
+  max_concurrent = 2
+)
+
+dag_run(parallel_dag)
+dag_as_df(parallel_dag)
+#>                 guid     name    status trigger_rule exec_order
+#> 1  simulated_extract  extract Succeeded  all_success          1
+#> 3 simulated_report_a report_a Succeeded  all_success          2
+#> 4 simulated_report_b report_b Succeeded  all_success          3
+#> 2   simulated_notify   notify Succeeded  all_success          4
+```
+
+With `max_concurrent = 2`, the two reports render at the same time
+rather than one after the other. You can set the limit when creating the
+DAG as above, change it afterwards, or override it for a single run.
+
+``` r
+
+# change the persisted setting on the DAG
+dag_set_max_concurrent(parallel_dag, 4)
+
+# or override only for this run
+dag_run(parallel_dag, max_concurrent = 4)
+```
+
+Because the setting lives on the DAG, it is preserved when the DAG is
+saved as a pin and re-run by a scheduled job.
+
+Concurrency never changes the *outcome* of a DAG, only its speed. A task
+is still only evaluated once all of its immediate upstream tasks have
+reached a terminal status, so the *trigger_rule* always sees the final
+upstream statuses. A concurrent run produces exactly the same task
+statuses as a sequential one.
+
+### Timeouts
+
+Since a DAG run waits on renders finishing in Connect, you can protect
+against a render that never completes using two optional timeouts. A
+*task timeout* fails any single task that runs longer than the given
+number of seconds, while a *DAG timeout* caps the entire run. In either
+case the offending task is marked *Failed* and the run proceeds or
+stops, guaranteeing the DAG always terminates. Both are disabled by
+default.
+
+``` r
+
+# fail any single task that runs longer than 10 minutes
+dag_set_task_timeout(parallel_dag, 600)
+
+# stop the whole run if it takes longer than 1 hour
+dag_set_dag_timeout(parallel_dag, 3600)
+```
+
+Like `max_concurrent`, both timeouts are stored on the DAG and persist
+with it.
